@@ -7,6 +7,8 @@ use App\Http\Requests\Api\Auth\RegisterRequest;
 use App\Http\Requests\Api\Auth\ResendOtpRequest;
 use App\Http\Requests\Api\Auth\VerifyEmailRequest;
 use App\Http\Requests\Api\Auth\LoginRequest;
+use App\Http\Requests\Api\Auth\ForgotPasswordRequest;
+use App\Http\Requests\Api\Auth\ResetPasswordRequest;
 use App\Mail\RegisterMail;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -104,6 +106,37 @@ class AuthController extends Controller
                 "message" => "OTP resent successfully. Please check your email for the new OTP."
             ]);
         });
+    }
+
+    public function forgotPassword(ForgotPasswordRequest $request)
+    {
+        $email = $request->validated()['email'];
+        $otp = $this->generateOpt($request, $email);
+        Mail::to($email)->send(new RegisterMail($otp));
+
+        return response()->json([
+            'message' => 'OTP sent to your email address.'
+        ]);
+    }
+
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        $validated = $request->validated();
+        $otp = (new Otp)->validate($validated['email'], $validated['otp']);
+
+        if (!$otp->status) {
+            return response()->json([
+                'message' => 'OTP is invalid or expired'
+            ], 400);
+        }
+
+        User::where('email', $validated['email'])->update([
+            'password' => bcrypt($validated['password']),
+        ]);
+
+        return response()->json([
+            'message' => 'Password reset successfully.'
+        ]);
     }
 
     public function logout(Request $request)
