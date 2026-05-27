@@ -53,6 +53,24 @@ services:
     networks:
       - laravel
 
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel_worker
+    restart: unless-stopped
+    working_dir: /var/www
+    command: php artisan queue:work redis --sleep=3 --tries=3 --timeout=60
+    volumes:
+      - ./src:/var/www
+      - vendor_data:/var/www/vendor
+      - storage_data:/var/www/storage
+    depends_on:
+      - redis
+      - mysql
+    networks:
+      - laravel
+
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: laravel_phpmyadmin
