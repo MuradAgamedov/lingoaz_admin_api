@@ -10,6 +10,7 @@ use App\Http\Requests\Api\Auth\LoginRequest;
 use App\Http\Requests\Api\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Api\Auth\ResetPasswordRequest;
 use App\Mail\RegisterMail;
+use App\Mail\ForgotPasswordMail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -112,7 +113,7 @@ class AuthController extends Controller
     {
         $email = $request->validated()['email'];
         $otp = $this->generateOpt($request, $email);
-        Mail::to($email)->send(new RegisterMail($otp));
+        Mail::to($email)->send(new ForgotPasswordMail($otp));
 
         return response()->json([
             'message' => 'OTP sent to your email address.'

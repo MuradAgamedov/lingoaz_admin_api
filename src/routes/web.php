@@ -6,7 +6,7 @@ use App\Http\Controllers\WelcomeController;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin', [HomeController::class, 'index'])->name('home');
     include __DIR__ . '/web/dictionary.php';
 });
