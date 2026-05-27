@@ -9,15 +9,14 @@ use App\Http\Requests\Api\Auth\VerifyEmailRequest;
 use App\Http\Requests\Api\Auth\LoginRequest;
 use App\Http\Requests\Api\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Api\Auth\ResetPasswordRequest;
-use App\Mail\RegisterMail;
-use App\Mail\ForgotPasswordMail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Ichtrojan\Otp\Otp;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 use App\Jobs\SendRegisterEmail;
+use App\Jobs\SendResendOtpEmail;
+use App\Jobs\SendForgotPasswordEmail;
 class AuthController extends Controller
 {
     public function register(RegisterRequest $request)
@@ -99,9 +98,7 @@ class AuthController extends Controller
             }
 
             $otp = $this->generateOpt($request, $validated["email"]);
-
-
-            Mail::to($validated["email"])->send(new RegisterMail($otp));
+            SendResendOtpEmail::dispatch($validated["email"], $otp);
 
             return response()->json([
                 "message" => "OTP resent successfully. Please check your email for the new OTP."
@@ -113,7 +110,7 @@ class AuthController extends Controller
     {
         $email = $request->validated()['email'];
         $otp = $this->generateOpt($request, $email);
-        Mail::to($email)->send(new ForgotPasswordMail($otp));
+        SendForgotPasswordEmail::dispatch($email, $otp);
 
         return response()->json([
             'message' => 'OTP sent to your email address.'
