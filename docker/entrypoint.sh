@@ -20,7 +20,7 @@ if grep -q "^APP_KEY=$" .env; then
 fi
 
 php artisan optimize:clear || true
-
+php artisan horizon:publish || true
 # Supervisor işlət (queue worker üçün)
 supervisord -c /etc/supervisor/supervisord.conf &
 
