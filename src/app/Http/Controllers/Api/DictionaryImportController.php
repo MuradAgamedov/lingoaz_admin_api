@@ -1,0 +1,120 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Helpers\JsonResponse;
+use App\Models\Dictionary;
+use App\Models\DictionaryCategory;
+use App\Models\UserDictionary;
+use App\Models\UserDictionaryCategory;
+use App\Models\UserDictionaryGroup;
+use Database\Seeders\UserDictionaryCategorySeeder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class DictionaryImportController extends Controller
+{
+    public function importWord(Request $request, int $categoryId, int $wordId)
+    {
+        $request->validate([
+            'user_dictionary_group_id' => 'required|exists:user_dictionary_groups,id',
+        ]);
+
+        try {
+            $category = DictionaryCategory::findOrFail($categoryId);
+            $word     = Dictionary::findOrFail($wordId);
+
+            $userCategory = $this->matchingUserCategory($category->title);
+            $userWord     = $this->findOrCreateWord($word, $request->user_dictionary_group_id);
+
+            $userWord->categories()->syncWithoutDetaching([$userCategory->id]);
+
+            return JsonResponse::success(['message' => 'Söz lüğətinizə əlavə edildi']);
+        } catch (\Exception $e) {
+            return JsonResponse::error($e->getMessage());
+        }
+    }
+
+    public function importAll(Request $request, int $categoryId)
+    {
+        $request->validate([
+            'user_dictionary_group_id' => 'required|exists:user_dictionary_groups,id',
+        ]);
+
+        try {
+            $category     = DictionaryCategory::with('dictionaries')->findOrFail($categoryId);
+            $userCategory = $this->matchingUserCategory($category->title);
+
+            foreach ($category->dictionaries as $word) {
+                $userWord = $this->findOrCreateWord($word, $request->user_dictionary_group_id);
+                $userWord->categories()->syncWithoutDetaching([$userCategory->id]);
+            }
+
+            return JsonResponse::success([
+                'message' => "{$category->title} kateqoriyasının bütün sözləri əlavə edildi",
+            ]);
+        } catch (\Exception $e) {
+            return JsonResponse::error($e->getMessage());
+        }
+    }
+
+    public function removeWord(int $categoryId, int $wordId)
+    {
+        try {
+            $dict     = Dictionary::findOrFail($wordId);
+            $userWord = UserDictionary::where('user_id', auth()->id())
+                ->where('word', $dict->word)
+                ->first();
+
+            if (!$userWord) {
+                return JsonResponse::success(['message' => 'Söz tapılmadı']);
+            }
+
+            $categoryIds = $userWord->categories()
+                ->pluck('user_dictionary_categories.id');
+
+            $userWord->delete();
+
+            if ($categoryIds->isNotEmpty()) {
+                UserDictionaryCategory::whereIn('id', $categoryIds)
+                    ->whereDoesntHave('dictionaries')
+                    ->where('title', '!=', UserDictionaryCategorySeeder::DEFAULT_CATEGORY)
+                    ->delete();
+            }
+
+            return JsonResponse::success(['message' => 'Söz lüğətinizdən silindi']);
+        } catch (\Exception $e) {
+            return JsonResponse::error($e->getMessage());
+        }
+    }
+
+    public function wordGroup(int $categoryId, int $wordId)
+    {
+        $dict     = Dictionary::findOrFail($wordId);
+        $userWord = UserDictionary::where('user_id', auth()->id())
+            ->where('word', $dict->word)
+            ->first();
+
+        return JsonResponse::success(['group_id' => $userWord?->user_dictionary_group_id]);
+    }
+
+    private function matchingUserCategory(string $title): UserDictionaryCategory
+    {
+        return UserDictionaryCategory::firstOrCreate([
+            'user_id' => auth()->id(),
+            'title'   => $title,
+        ]);
+    }
+
+    private function findOrCreateWord(Dictionary $dict, int $groupId): UserDictionary
+    {
+        return UserDictionary::firstOrCreate(
+            ['user_id' => auth()->id(), 'word' => $dict->word],
+            [
+                'translation'              => $dict->translation,
+                'user_dictionary_group_id' => $groupId,
+            ]
+        );
+    }
+}

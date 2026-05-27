@@ -1,0 +1,87 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>LingoAz | Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description">
+    <meta content="Themesdesign" name="author">
+
+    <!-- App favicon -->
+  <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
+
+    <script>
+        (function () {
+            const html = document.documentElement;
+            const storageKey = "__TAILWICK_CONFIG__";
+            const savedConfig = sessionStorage.getItem(storageKey);
+
+            // Default config
+            const defaultConfig = {
+                dir: "ltr",
+                theme: "light",
+                sidenav: {
+                    color: "light",
+                    size: "default",
+                },
+            };
+
+            // Build config from HTML attributes
+            function getSystemTheme() {
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
+            }
+
+            // Build config from HTML attributes
+            const htmlConfig = {
+                dir: html.getAttribute("dir") || defaultConfig.dir,
+
+                theme: html.getAttribute("data-theme") === 'system'
+                    ? getSystemTheme()
+                    : html.getAttribute("data-theme") || (defaultConfig.theme === 'system' ? getSystemTheme() : defaultConfig.theme),
+                sidenav: {
+                    color: html.getAttribute("data-sidenav-color") || defaultConfig.sidenav.color,
+                    size: html.getAttribute("data-sidenav-size") || defaultConfig.sidenav.size,
+                },
+            };
+
+            // Save merged config as defaults globally
+            window.defaultConfig = structuredClone(htmlConfig);
+
+            // Load from session if exists
+            let config = savedConfig ? JSON.parse(savedConfig) : htmlConfig;
+            window.config = config;
+
+            // Apply layout attributes immediately
+            html.setAttribute("dir", config.dir);
+            html.setAttribute("data-theme", config.theme);
+            html.setAttribute("data-sidenav-color", config.sidenav.color);
+
+            if (config.sidenav.size) {
+                let size = config.sidenav.size;
+
+                if (window.innerWidth <= 1140) {
+                    size = "offcanvas";
+                }
+
+                html.setAttribute("data-sidenav-size", size);
+            }
+        })();
+    </script>
+
+
+
+  <script type="module" crossorigin src="{{ asset('assets/index-DsDs3XAz.js') }}"></script>
+  <link rel="modulepreload" crossorigin href="{{ asset('assets/app-BxTRRtUp.js') }}">
+  <link rel="modulepreload" crossorigin href="{{ asset('assets/apexcharts.esm-DPbJ6jlt.js') }}">
+  <link rel="modulepreload" crossorigin href="{{ asset('assets/flatpickr-DxeCcIwz.js') }}">
+  <link rel="stylesheet" crossorigin href="{{ asset('assets/app-0ZOPNGSF.css') }}">
+</head>
+
+<body>
+
+    @yield('content')
+
+</body>
+
+</html>

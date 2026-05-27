@@ -1,0 +1,73 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\NoteGroup\Note\CreateRequest;
+use App\Http\Requests\NoteGroup\Note\UpdateRequest;
+use App\Http\Resources\Api\NoteResource;
+use App\Helpers\JsonResponse;
+use App\Services\NoteService;
+use App\Services\NoteGroupService;
+
+class NoteController extends Controller
+{
+    public function __construct(
+        protected NoteService $service,
+        protected NoteGroupService $groupService,
+    ) {}
+
+    private function authorizeGroup(int $groupId): bool
+    {
+        return (bool) $this->groupService->findForUser($groupId, auth()->id());
+    }
+
+    public function index(int $groupId)
+    {
+        try {
+            if (!$this->authorizeGroup($groupId)) return JsonResponse::error('Not found', 404);
+            $notes = $this->service->allForGroup($groupId, auth()->id());
+            return JsonResponse::success(NoteResource::collection($notes));
+        } catch (\Exception $e) {
+            return JsonResponse::error($e->getMessage());
+        }
+    }
+
+    public function store(CreateRequest $request, int $groupId)
+    {
+        try {
+            if (!$this->authorizeGroup($groupId)) return JsonResponse::error('Not found', 404);
+            $note = $this->service->create(array_merge($request->validated(), [
+                'user_id'       => auth()->id(),
+                'note_group_id' => $groupId,
+            ]));
+            return JsonResponse::success(new NoteResource($note), 'Created', 201);
+        } catch (\Exception $e) {
+            return JsonResponse::error($e->getMessage());
+        }
+    }
+
+    public function update(UpdateRequest $request, int $groupId, int $id)
+    {
+        try {
+            if (!$this->authorizeGroup($groupId)) return JsonResponse::error('Not found', 404);
+            $note = $this->service->update($id, auth()->id(), $request->validated());
+            if (!$note) return JsonResponse::error('Not found', 404);
+            return JsonResponse::success(new NoteResource($note));
+        } catch (\Exception $e) {
+            return JsonResponse::error($e->getMessage());
+        }
+    }
+
+    public function destroy(int $groupId, int $id)
+    {
+        try {
+            if (!$this->authorizeGroup($groupId)) return JsonResponse::error('Not found', 404);
+            $deleted = $this->service->delete($id, auth()->id());
+            if (!$deleted) return JsonResponse::error('Not found', 404);
+            return JsonResponse::success(null, 'Deleted');
+        } catch (\Exception $e) {
+            return JsonResponse::error($e->getMessage());
+        }
+    }
+}
