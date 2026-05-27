@@ -9,6 +9,7 @@ use App\Http\Requests\Api\UserDictionary\UpdateRequest;
 use App\Services\Api\UserDictionaryService;
 use App\Http\Resources\UserDictionaryResource;
 use App\Helpers\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class UserDictionaryController extends Controller
 {
@@ -22,10 +23,17 @@ class UserDictionaryController extends Controller
     public function index(Request $request)
     {
         try {
+            $uid     = auth()->id();
             $filters = $request->only('user_dictionary_group_id', 'user_dictionary_category_id');
-            return JsonResponse::success(UserDictionaryResource::collection(
+            $groupId = $filters['user_dictionary_group_id'] ?? 'all';
+            $catId   = $filters['user_dictionary_category_id'] ?? 'all';
+            $v       = Cache::get("user_{$uid}_dicts_v", 0);
+            $key     = "user_{$uid}_dicts_{$groupId}_{$catId}_v{$v}";
+
+            $words = Cache::remember($key, 600, fn() =>
                 $this->service->paginate(50, $filters)
-            ));
+            );
+            return JsonResponse::success(UserDictionaryResource::collection($words));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
@@ -34,9 +42,9 @@ class UserDictionaryController extends Controller
     public function store(CreateRequest $request)
     {
         try {
-            return JsonResponse::success(UserDictionaryResource::make(
-                $this->service->create($request->validated())
-            ));
+            $word = $this->service->create($request->validated());
+            Cache::increment("user_" . auth()->id() . "_dicts_v");
+            return JsonResponse::success(UserDictionaryResource::make($word));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
@@ -45,9 +53,11 @@ class UserDictionaryController extends Controller
     public function show($id)
     {
         try {
-            return JsonResponse::success(UserDictionaryResource::make(
+            $uid  = auth()->id();
+            $word = Cache::remember("user_{$uid}_dict_{$id}", 600, fn() =>
                 $this->service->find($id)
-            ));
+            );
+            return JsonResponse::success(UserDictionaryResource::make($word));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
@@ -56,9 +66,11 @@ class UserDictionaryController extends Controller
     public function update(UpdateRequest $request, $id)
     {
         try {
-            return JsonResponse::success(UserDictionaryResource::make(
-                $this->service->update($id, $request->validated())
-            ));
+            $uid  = auth()->id();
+            $word = $this->service->update($id, $request->validated());
+            Cache::increment("user_{$uid}_dicts_v");
+            Cache::forget("user_{$uid}_dict_{$id}");
+            return JsonResponse::success(UserDictionaryResource::make($word));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
@@ -67,7 +79,10 @@ class UserDictionaryController extends Controller
     public function destroy($id)
     {
         try {
+            $uid = auth()->id();
             $this->service->delete($id);
+            Cache::increment("user_{$uid}_dicts_v");
+            Cache::forget("user_{$uid}_dict_{$id}");
             return JsonResponse::success(null);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -81,7 +96,12 @@ class UserDictionaryController extends Controller
             'ids.*' => 'integer',
         ]);
         try {
+            $uid = auth()->id();
             $this->service->deleteMultiple($request->ids);
+            Cache::increment("user_{$uid}_dicts_v");
+            foreach ($request->ids as $id) {
+                Cache::forget("user_{$uid}_dict_{$id}");
+            }
             return JsonResponse::success(null);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -94,9 +114,11 @@ class UserDictionaryController extends Controller
             'audio' => 'required|file|mimes:mp3,wav,m4a,aac,ogg|max:20480',
         ]);
         try {
-            return JsonResponse::success(UserDictionaryResource::make(
-                $this->service->addAudio($id, $request->file('audio'))
-            ));
+            $uid  = auth()->id();
+            $word = $this->service->addAudio($id, $request->file('audio'));
+            Cache::increment("user_{$uid}_dicts_v");
+            Cache::forget("user_{$uid}_dict_{$id}");
+            return JsonResponse::success(UserDictionaryResource::make($word));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
@@ -105,9 +127,11 @@ class UserDictionaryController extends Controller
     public function removeAudio(int $id, int $index)
     {
         try {
-            return JsonResponse::success(UserDictionaryResource::make(
-                $this->service->removeAudio($id, $index)
-            ));
+            $uid  = auth()->id();
+            $word = $this->service->removeAudio($id, $index);
+            Cache::increment("user_{$uid}_dicts_v");
+            Cache::forget("user_{$uid}_dict_{$id}");
+            return JsonResponse::success(UserDictionaryResource::make($word));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }

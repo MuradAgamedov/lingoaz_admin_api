@@ -7,13 +7,16 @@ use App\Http\Resources\Api\DictionaryCategoryResource;
 use App\Http\Resources\Api\DictionaryWordResource;
 use App\Helpers\JsonResponse;
 use App\Models\DictionaryCategory;
+use Illuminate\Support\Facades\Cache;
 
 class DictionaryCategoryController extends Controller
 {
     public function index()
     {
         try {
-            $categories = DictionaryCategory::orderBy('title')->get();
+            $categories = Cache::remember('dict_categories', 3600, fn() =>
+                DictionaryCategory::orderBy('title')->get()
+            );
             return JsonResponse::success(DictionaryCategoryResource::collection($categories));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -23,8 +26,10 @@ class DictionaryCategoryController extends Controller
     public function words(int $id)
     {
         try {
-            $category = DictionaryCategory::findOrFail($id);
-            $words = $category->dictionaries()->orderBy('word')->get();
+            $words = Cache::remember("dict_words_{$id}", 3600, function () use ($id) {
+                $category = DictionaryCategory::findOrFail($id);
+                return $category->dictionaries()->orderBy('word')->get();
+            });
             return JsonResponse::success(DictionaryWordResource::collection($words));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());

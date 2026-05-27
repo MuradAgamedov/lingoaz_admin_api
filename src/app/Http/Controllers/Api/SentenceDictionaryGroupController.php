@@ -8,6 +8,7 @@ use App\Http\Requests\SentenceDictionaryGroup\UpdateRequest;
 use App\Http\Resources\Api\SentenceDictionaryGroupResource;
 use App\Helpers\JsonResponse;
 use App\Services\SentenceDictionaryGroupService;
+use Illuminate\Support\Facades\Cache;
 
 class SentenceDictionaryGroupController extends Controller
 {
@@ -16,7 +17,10 @@ class SentenceDictionaryGroupController extends Controller
     public function index()
     {
         try {
-            $groups = $this->service->allForUser(auth()->id());
+            $uid    = auth()->id();
+            $groups = Cache::remember("user_{$uid}_sdg", 600, fn() =>
+                $this->service->allForUser($uid)
+            );
             return JsonResponse::success(SentenceDictionaryGroupResource::collection($groups));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -26,10 +30,11 @@ class SentenceDictionaryGroupController extends Controller
     public function show(int $id)
     {
         try {
-            $group = $this->service->findForUser($id, auth()->id());
-            if (!$group) {
-                return JsonResponse::error('Not found', 404);
-            }
+            $uid   = auth()->id();
+            $group = Cache::remember("user_{$uid}_sdg_{$id}", 600, fn() =>
+                $this->service->findForUser($id, $uid)
+            );
+            if (!$group) return JsonResponse::error('Not found', 404);
             return JsonResponse::success(new SentenceDictionaryGroupResource($group));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -39,7 +44,9 @@ class SentenceDictionaryGroupController extends Controller
     public function store(CreateRequest $request)
     {
         try {
-            $group = $this->service->create(auth()->id(), $request->validated());
+            $uid   = auth()->id();
+            $group = $this->service->create($uid, $request->validated());
+            Cache::forget("user_{$uid}_sdg");
             return JsonResponse::success(new SentenceDictionaryGroupResource($group), 'Created', 201);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -49,10 +56,11 @@ class SentenceDictionaryGroupController extends Controller
     public function update(UpdateRequest $request, int $id)
     {
         try {
-            $group = $this->service->update($id, auth()->id(), $request->validated());
-            if (!$group) {
-                return JsonResponse::error('Not found', 404);
-            }
+            $uid   = auth()->id();
+            $group = $this->service->update($id, $uid, $request->validated());
+            if (!$group) return JsonResponse::error('Not found', 404);
+            Cache::forget("user_{$uid}_sdg");
+            Cache::forget("user_{$uid}_sdg_{$id}");
             return JsonResponse::success(new SentenceDictionaryGroupResource($group));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -62,10 +70,13 @@ class SentenceDictionaryGroupController extends Controller
     public function destroy(int $id)
     {
         try {
-            $deleted = $this->service->delete($id, auth()->id());
-            if (!$deleted) {
-                return JsonResponse::error('Not found', 404);
-            }
+            $uid     = auth()->id();
+            $deleted = $this->service->delete($id, $uid);
+            if (!$deleted) return JsonResponse::error('Not found', 404);
+            Cache::forget("user_{$uid}_sdg");
+            Cache::forget("user_{$uid}_sdg_{$id}");
+            Cache::forget("user_{$uid}_sdg_{$id}_cats");
+            Cache::increment("user_{$uid}_sdg_{$id}_entries_v");
             return JsonResponse::success(null, 'Deleted');
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());

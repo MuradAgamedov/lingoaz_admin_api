@@ -8,6 +8,7 @@ use App\Http\Requests\Api\UserDictionaryGroup\UpdateRequest;
 use App\Http\Resources\UserDictionaryGroupResource;
 use App\Helpers\JsonResponse;
 use App\Services\Api\UserDictionaryGroupService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class UserDictionaryGroupController extends Controller
@@ -19,7 +20,11 @@ class UserDictionaryGroupController extends Controller
     public function index()
     {
         try {
-            return JsonResponse::success(UserDictionaryGroupResource::collection($this->service->paginate(50, ['user'])));
+            $uid = auth()->id();
+            $groups = Cache::remember("user_{$uid}_dict_groups", 600, fn() =>
+                $this->service->paginate(50, ['user'])
+            );
+            return JsonResponse::success(UserDictionaryGroupResource::collection($groups));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
@@ -34,7 +39,10 @@ class UserDictionaryGroupController extends Controller
                 $data['image'] = $request->file('image')->store('user-dictionary-groups', 'public');
             }
 
-            return JsonResponse::success(UserDictionaryGroupResource::make($this->service->create($data)));
+            $group = $this->service->create($data);
+            Cache::forget('user_' . auth()->id() . '_dict_groups');
+
+            return JsonResponse::success(UserDictionaryGroupResource::make($group));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
@@ -43,7 +51,11 @@ class UserDictionaryGroupController extends Controller
     public function show($id)
     {
         try {
-            return JsonResponse::success(UserDictionaryGroupResource::make($this->service->find($id)));
+            $uid = auth()->id();
+            $group = Cache::remember("user_{$uid}_dict_group_{$id}", 600, fn() =>
+                $this->service->find($id)
+            );
+            return JsonResponse::success(UserDictionaryGroupResource::make($group));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
@@ -53,18 +65,21 @@ class UserDictionaryGroupController extends Controller
     {
         try {
             $data = $request->validated();
+            $uid  = auth()->id();
 
             if ($request->hasFile('image')) {
                 $group = $this->service->find($id);
-
                 if ($group && $group->image) {
                     Storage::disk('public')->delete($group->image);
                 }
-
                 $data['image'] = $request->file('image')->store('user-dictionary-groups', 'public');
             }
 
-            return JsonResponse::success(UserDictionaryGroupResource::make($this->service->update($id, $data)));
+            $group = $this->service->update($id, $data);
+            Cache::forget("user_{$uid}_dict_groups");
+            Cache::forget("user_{$uid}_dict_group_{$id}");
+
+            return JsonResponse::success(UserDictionaryGroupResource::make($group));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
@@ -73,13 +88,18 @@ class UserDictionaryGroupController extends Controller
     public function destroy($id)
     {
         try {
+            $uid   = auth()->id();
             $group = $this->service->find($id);
 
             if ($group && $group->image) {
                 Storage::disk('public')->delete($group->image);
             }
 
-            return JsonResponse::success($this->service->delete($id));
+            $this->service->delete($id);
+            Cache::forget("user_{$uid}_dict_groups");
+            Cache::forget("user_{$uid}_dict_group_{$id}");
+
+            return JsonResponse::success(null);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }

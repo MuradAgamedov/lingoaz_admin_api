@@ -12,6 +12,7 @@ use App\Models\UserDictionaryGroup;
 use Database\Seeders\UserDictionaryCategorySeeder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class DictionaryImportController extends Controller
 {
@@ -29,6 +30,10 @@ class DictionaryImportController extends Controller
             $userWord     = $this->findOrCreateWord($word, $request->user_dictionary_group_id);
 
             $userWord->categories()->syncWithoutDetaching([$userCategory->id]);
+
+            $uid = auth()->id();
+            Cache::forget("user_{$uid}_word_group_{$categoryId}_{$wordId}");
+            Cache::increment("user_{$uid}_dicts_v");
 
             return JsonResponse::success(['message' => 'Söz lüğətinizə əlavə edildi']);
         } catch (\Exception $e) {
@@ -50,6 +55,9 @@ class DictionaryImportController extends Controller
                 $userWord = $this->findOrCreateWord($word, $request->user_dictionary_group_id);
                 $userWord->categories()->syncWithoutDetaching([$userCategory->id]);
             }
+
+            $uid = auth()->id();
+            Cache::increment("user_{$uid}_dicts_v");
 
             return JsonResponse::success([
                 'message' => "{$category->title} kateqoriyasının bütün sözləri əlavə edildi",
@@ -83,6 +91,9 @@ class DictionaryImportController extends Controller
                     ->delete();
             }
 
+            $uid = auth()->id();
+            Cache::increment("user_{$uid}_dicts_v");
+
             return JsonResponse::success(['message' => 'Söz lüğətinizdən silindi']);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -91,12 +102,16 @@ class DictionaryImportController extends Controller
 
     public function wordGroup(int $categoryId, int $wordId)
     {
-        $dict     = Dictionary::findOrFail($wordId);
-        $userWord = UserDictionary::where('user_id', auth()->id())
-            ->where('word', $dict->word)
-            ->first();
+        $uid    = auth()->id();
+        $result = Cache::remember("user_{$uid}_word_group_{$categoryId}_{$wordId}", 600, function () use ($wordId) {
+            $dict     = Dictionary::findOrFail($wordId);
+            $userWord = UserDictionary::where('user_id', auth()->id())
+                ->where('word', $dict->word)
+                ->first();
+            return ['group_id' => $userWord?->user_dictionary_group_id];
+        });
 
-        return JsonResponse::success(['group_id' => $userWord?->user_dictionary_group_id]);
+        return JsonResponse::success($result);
     }
 
     private function matchingUserCategory(string $title): UserDictionaryCategory

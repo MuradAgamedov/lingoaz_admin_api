@@ -9,6 +9,7 @@ use App\Http\Resources\Api\NoteResource;
 use App\Helpers\JsonResponse;
 use App\Services\NoteService;
 use App\Services\NoteGroupService;
+use Illuminate\Support\Facades\Cache;
 
 class NoteController extends Controller
 {
@@ -26,7 +27,10 @@ class NoteController extends Controller
     {
         try {
             if (!$this->authorizeGroup($groupId)) return JsonResponse::error('Not found', 404);
-            $notes = $this->service->allForGroup($groupId, auth()->id());
+            $uid   = auth()->id();
+            $notes = Cache::remember("user_{$uid}_notes_{$groupId}", 600, fn() =>
+                $this->service->allForGroup($groupId, $uid)
+            );
             return JsonResponse::success(NoteResource::collection($notes));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -37,10 +41,12 @@ class NoteController extends Controller
     {
         try {
             if (!$this->authorizeGroup($groupId)) return JsonResponse::error('Not found', 404);
+            $uid  = auth()->id();
             $note = $this->service->create(array_merge($request->validated(), [
-                'user_id'       => auth()->id(),
+                'user_id'       => $uid,
                 'note_group_id' => $groupId,
             ]));
+            Cache::forget("user_{$uid}_notes_{$groupId}");
             return JsonResponse::success(new NoteResource($note), 'Created', 201);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -51,8 +57,10 @@ class NoteController extends Controller
     {
         try {
             if (!$this->authorizeGroup($groupId)) return JsonResponse::error('Not found', 404);
-            $note = $this->service->update($id, auth()->id(), $request->validated());
+            $uid  = auth()->id();
+            $note = $this->service->update($id, $uid, $request->validated());
             if (!$note) return JsonResponse::error('Not found', 404);
+            Cache::forget("user_{$uid}_notes_{$groupId}");
             return JsonResponse::success(new NoteResource($note));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -63,8 +71,10 @@ class NoteController extends Controller
     {
         try {
             if (!$this->authorizeGroup($groupId)) return JsonResponse::error('Not found', 404);
-            $deleted = $this->service->delete($id, auth()->id());
+            $uid     = auth()->id();
+            $deleted = $this->service->delete($id, $uid);
             if (!$deleted) return JsonResponse::error('Not found', 404);
+            Cache::forget("user_{$uid}_notes_{$groupId}");
             return JsonResponse::success(null, 'Deleted');
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());

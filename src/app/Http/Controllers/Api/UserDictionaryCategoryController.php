@@ -7,13 +7,17 @@ use App\Http\Resources\UserDictionaryCategoryResource;
 use App\Helpers\JsonResponse;
 use App\Models\UserDictionaryCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class UserDictionaryCategoryController extends Controller
 {
     public function index()
     {
         try {
-            $categories = UserDictionaryCategory::where('user_id', auth()->id())->get();
+            $uid        = auth()->id();
+            $categories = Cache::remember("user_{$uid}_dict_cats", 600, fn() =>
+                UserDictionaryCategory::where('user_id', $uid)->get()
+            );
             return JsonResponse::success(UserDictionaryCategoryResource::collection($categories));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -24,10 +28,12 @@ class UserDictionaryCategoryController extends Controller
     {
         $request->validate(['title' => 'required|string|max:255']);
         try {
+            $uid      = auth()->id();
             $category = UserDictionaryCategory::create([
-                'user_id' => auth()->id(),
+                'user_id' => $uid,
                 'title'   => $request->title,
             ]);
+            Cache::forget("user_{$uid}_dict_cats");
             return JsonResponse::success(UserDictionaryCategoryResource::make($category));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -38,8 +44,10 @@ class UserDictionaryCategoryController extends Controller
     {
         $request->validate(['title' => 'required|string|max:255']);
         try {
-            $category = UserDictionaryCategory::where('user_id', auth()->id())->findOrFail($id);
+            $uid      = auth()->id();
+            $category = UserDictionaryCategory::where('user_id', $uid)->findOrFail($id);
             $category->update(['title' => $request->title]);
+            Cache::forget("user_{$uid}_dict_cats");
             return JsonResponse::success(UserDictionaryCategoryResource::make($category));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -49,7 +57,9 @@ class UserDictionaryCategoryController extends Controller
     public function destroy(int $id)
     {
         try {
-            UserDictionaryCategory::where('user_id', auth()->id())->where('id', $id)->delete();
+            $uid = auth()->id();
+            UserDictionaryCategory::where('user_id', $uid)->where('id', $id)->delete();
+            Cache::forget("user_{$uid}_dict_cats");
             return JsonResponse::success(null);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
