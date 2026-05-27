@@ -30,6 +30,7 @@ services:
       - vendor_data:/var/www/vendor
       - storage_data:/var/www/storage
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - /etc/letsencrypt:/etc/letsencrypt
 
     depends_on:
       - app
