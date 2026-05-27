@@ -53,14 +53,14 @@ services:
     networks:
       - laravel
 
-  worker:
+  horizon:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: laravel_worker
+    container_name: laravel_horizon
     restart: unless-stopped
     working_dir: /var/www
-    command: php artisan queue:work redis --sleep=3 --tries=3 --timeout=60
+    command: php artisan horizon
     volumes:
       - ./src:/var/www
       - vendor_data:/var/www/vendor
