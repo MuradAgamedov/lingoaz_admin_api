@@ -11,4 +11,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     include __DIR__ . '/web/dictionary.php';
 });
 
+
+Route::get("/test-job", function(){
+    App\Jobs\SendMessage::dispach("test");
+});
+
 include __DIR__ . '/web/auth.php';
