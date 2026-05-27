@@ -16,7 +16,7 @@ class HorizonServiceProvider extends HorizonApplicationServiceProvider
         parent::boot();
         Horizon::auth(function ($request) {
             return $request->user() && in_array($request->user()->email, [
-                'agamedov.94@gmail.com',
+                'agamedov94@mail.ru',
             ]);
         });
         // Horizon::routeSmsNotificationsTo('15556667777');
