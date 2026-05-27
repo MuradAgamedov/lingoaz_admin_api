@@ -5,6 +5,7 @@ namespace App\Repositories\Api;
 use App\Models\UserDictionary;
 use App\Models\UserDictionaryCategory;
 use Database\Seeders\UserDictionaryCategorySeeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class UserDictionaryRepository
@@ -28,20 +29,22 @@ class UserDictionaryRepository
 
     public function create(array $data)
     {
-        $userId = auth()->id();
-        $data['user_id'] = $userId;
-        unset($data['audio_urls']);
+        return DB::transaction(function () use ($data) {
+            $userId = auth()->id();
+            $data['user_id'] = $userId;
+            unset($data['audio_urls']);
 
-        $word = $this->model->create($data);
+            $word = $this->model->create($data);
 
-        $default = UserDictionaryCategory::firstOrCreate([
-            'user_id' => $userId,
-            'title'   => UserDictionaryCategorySeeder::DEFAULT_CATEGORY,
-        ]);
+            $default = UserDictionaryCategory::firstOrCreate([
+                'user_id' => $userId,
+                'title'   => UserDictionaryCategorySeeder::DEFAULT_CATEGORY,
+            ]);
 
-        $word->categories()->attach($default->id);
+            $word->categories()->attach($default->id);
 
-        return $word;
+            return $word;
+        });
     }
 
     public function update($id, array $data)
@@ -54,36 +57,40 @@ class UserDictionaryRepository
 
     public function delete($id)
     {
-        $word = $this->model->where('user_id', auth()->id())->findOrFail($id);
+        return DB::transaction(function () use ($id) {
+            $word = $this->model->where('user_id', auth()->id())->findOrFail($id);
 
-        $categoryIds = $word->categories()->pluck('user_dictionary_categories.id');
+            $categoryIds = $word->categories()->pluck('user_dictionary_categories.id');
 
-        $word->delete();
+            $word->delete();
 
-        $this->cleanupEmptyCategories($categoryIds->all());
+            $this->cleanupEmptyCategories($categoryIds->all());
 
-        return true;
+            return true;
+        });
     }
 
     public function deleteMultiple(array $ids): void
     {
-        $userId = auth()->id();
+        DB::transaction(function () use ($ids) {
+            $userId = auth()->id();
 
-        $words = $this->model
-            ->where('user_id', $userId)
-            ->whereIn('id', $ids)
-            ->with('categories')
-            ->get();
+            $words = $this->model
+                ->where('user_id', $userId)
+                ->whereIn('id', $ids)
+                ->with('categories')
+                ->get();
 
-        $categoryIds = $words
-            ->flatMap(fn($w) => $w->categories->pluck('id'))
-            ->unique()
-            ->values()
-            ->all();
+            $categoryIds = $words
+                ->flatMap(fn($w) => $w->categories->pluck('id'))
+                ->unique()
+                ->values()
+                ->all();
 
-        $this->model->where('user_id', $userId)->whereIn('id', $ids)->delete();
+            $this->model->where('user_id', $userId)->whereIn('id', $ids)->delete();
 
-        $this->cleanupEmptyCategories($categoryIds);
+            $this->cleanupEmptyCategories($categoryIds);
+        });
     }
 
     private function cleanupEmptyCategories(array $categoryIds): void

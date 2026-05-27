@@ -13,6 +13,7 @@ use Database\Seeders\UserDictionaryCategorySeeder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DictionaryImportController extends Controller
 {
@@ -26,14 +27,15 @@ class DictionaryImportController extends Controller
             $category = DictionaryCategory::findOrFail($categoryId);
             $word     = Dictionary::findOrFail($wordId);
 
-            $userCategory = $this->matchingUserCategory($category->title);
-            $userWord     = $this->findOrCreateWord($word, $request->user_dictionary_group_id);
+            DB::transaction(function () use ($category, $word, $request, $categoryId, $wordId) {
+                $userCategory = $this->matchingUserCategory($category->title);
+                $userWord     = $this->findOrCreateWord($word, $request->user_dictionary_group_id);
+                $userWord->categories()->syncWithoutDetaching([$userCategory->id]);
 
-            $userWord->categories()->syncWithoutDetaching([$userCategory->id]);
-
-            $uid = auth()->id();
-            Cache::forget("user_{$uid}_word_group_{$categoryId}_{$wordId}");
-            Cache::increment("user_{$uid}_dicts_v");
+                $uid = auth()->id();
+                Cache::forget("user_{$uid}_word_group_{$categoryId}_{$wordId}");
+                Cache::increment("user_{$uid}_dicts_v");
+            });
 
             return JsonResponse::success(['message' => 'Söz lüğətinizə əlavə edildi']);
         } catch (\Exception $e) {
@@ -48,16 +50,19 @@ class DictionaryImportController extends Controller
         ]);
 
         try {
-            $category     = DictionaryCategory::with('dictionaries')->findOrFail($categoryId);
-            $userCategory = $this->matchingUserCategory($category->title);
+            $category = DictionaryCategory::with('dictionaries')->findOrFail($categoryId);
 
-            foreach ($category->dictionaries as $word) {
-                $userWord = $this->findOrCreateWord($word, $request->user_dictionary_group_id);
-                $userWord->categories()->syncWithoutDetaching([$userCategory->id]);
-            }
+            DB::transaction(function () use ($category, $request) {
+                $userCategory = $this->matchingUserCategory($category->title);
 
-            $uid = auth()->id();
-            Cache::increment("user_{$uid}_dicts_v");
+                foreach ($category->dictionaries as $word) {
+                    $userWord = $this->findOrCreateWord($word, $request->user_dictionary_group_id);
+                    $userWord->categories()->syncWithoutDetaching([$userCategory->id]);
+                }
+
+                $uid = auth()->id();
+                Cache::increment("user_{$uid}_dicts_v");
+            });
 
             return JsonResponse::success([
                 'message' => "{$category->title} kateqoriyasının bütün sözləri əlavə edildi",
@@ -79,20 +84,22 @@ class DictionaryImportController extends Controller
                 return JsonResponse::success(['message' => 'Söz tapılmadı']);
             }
 
-            $categoryIds = $userWord->categories()
-                ->pluck('user_dictionary_categories.id');
+            DB::transaction(function () use ($userWord) {
+                $categoryIds = $userWord->categories()
+                    ->pluck('user_dictionary_categories.id');
 
-            $userWord->delete();
+                $userWord->delete();
 
-            if ($categoryIds->isNotEmpty()) {
-                UserDictionaryCategory::whereIn('id', $categoryIds)
-                    ->whereDoesntHave('dictionaries')
-                    ->where('title', '!=', UserDictionaryCategorySeeder::DEFAULT_CATEGORY)
-                    ->delete();
-            }
+                if ($categoryIds->isNotEmpty()) {
+                    UserDictionaryCategory::whereIn('id', $categoryIds)
+                        ->whereDoesntHave('dictionaries')
+                        ->where('title', '!=', UserDictionaryCategorySeeder::DEFAULT_CATEGORY)
+                        ->delete();
+                }
 
-            $uid = auth()->id();
-            Cache::increment("user_{$uid}_dicts_v");
+                $uid = auth()->id();
+                Cache::increment("user_{$uid}_dicts_v");
+            });
 
             return JsonResponse::success(['message' => 'Söz lüğətinizdən silindi']);
         } catch (\Exception $e) {
