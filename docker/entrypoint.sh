@@ -2,10 +2,10 @@
 set -e
 
 mkdir -p storage/framework/cache \
-storage/framework/views \
-storage/framework/sessions \
-storage/logs \
-bootstrap/cache
+    storage/framework/views \
+    storage/framework/sessions \
+    storage/logs \
+    bootstrap/cache
 
 chmod -R 775 storage bootstrap/cache
 
@@ -20,5 +20,8 @@ if grep -q "^APP_KEY=$" .env; then
 fi
 
 php artisan optimize:clear || true
+
+# Supervisor işlət (queue worker üçün)
+supervisord -c /etc/supervisor/supervisord.conf &
 
 exec php-fpm

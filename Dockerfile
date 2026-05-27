@@ -1,5 +1,4 @@
 FROM php:8.4-fpm
-
 WORKDIR /var/www
 
 RUN apt-get update && apt-get install -y \
@@ -14,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
+    supervisor \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
     && pecl install redis \
@@ -22,7 +22,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
 COPY src/ .
 
 RUN if [ -f .env.example ]; then cp .env.example .env; fi
@@ -32,6 +31,7 @@ RUN composer install \
     --prefer-dist \
     --optimize-autoloader
 
+COPY docker/supervisor/laravel-worker.conf /etc/supervisor/conf.d/laravel-worker.conf
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN chmod +x /usr/local/bin/entrypoint.sh \
@@ -40,5 +40,4 @@ RUN chmod +x /usr/local/bin/entrypoint.sh \
     && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 9000
-
 CMD ["entrypoint.sh"]
