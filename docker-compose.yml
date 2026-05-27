@@ -49,6 +49,7 @@ services:
     image: redis:latest
     container_name: laravel_redis
     restart: unless-stopped
+    command: redis-server --requirepass £_9V?i5N0FeC
     networks:
       - laravel
 
