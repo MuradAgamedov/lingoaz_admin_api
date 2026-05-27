@@ -59,9 +59,9 @@ services:
     ports:
       - "8080:80"
     environment:
-      PMA_HOST: mysql
+      PMA_HOST: laravel_mysql
       PMA_ABSOLUTE_URI: http://lingoaz.online:8080/
-      HIDE_PHP_VERSION: true
+      HIDE_PHP_VERSION: "true"
     networks:
       - laravel
 
