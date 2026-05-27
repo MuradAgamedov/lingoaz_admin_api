@@ -60,8 +60,8 @@ services:
       - "8080:80"
     environment:
       PMA_HOST: mysql
-      PMA_USER: laravel
-      PMA_PASSWORD: root
+      PMA_ABSOLUTE_URI: http://lingoaz.online:8080/
+      HIDE_PHP_VERSION: true
     networks:
       - laravel
 
