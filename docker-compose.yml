@@ -18,12 +18,12 @@ services:
 
   nginx:
     image: nginx:latest
-
     container_name: laravel_nginx
     restart: unless-stopped
 
     ports:
       - "80:80"
+      - "443:443"
 
     volumes:
       - ./src:/var/www
@@ -40,7 +40,6 @@ services:
 
   mysql:
     image: mysql:8.0
-
     container_name: laravel_mysql
     restart: unless-stopped
 
@@ -58,7 +57,6 @@ services:
 
   redis:
     image: redis:latest
-
     container_name: laravel_redis
     restart: unless-stopped
 
