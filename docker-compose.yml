@@ -39,7 +39,7 @@ services:
       MYSQL_DATABASE: laravel
       MYSQL_ROOT_PASSWORD: root
       MYSQL_PASSWORD: root
-      MYSQL_USER: laravel
+      MYSQL_USER: lingoaz
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
