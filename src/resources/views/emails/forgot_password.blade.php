@@ -13,10 +13,7 @@
 
         {{-- Header --}}
         <tr>
-          <td align="center" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:16px 16px 0 0;padding:40px 32px 32px;">
-            <div style="width:64px;height:64px;background:rgba(255,255,255,0.18);border-radius:18px;border:1.5px solid rgba(255,255,255,0.35);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
-              <span style="font-size:32px;line-height:1;">🔐</span>
-            </div>
+          <td align="center" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:16px 16px 0 0;padding:32px 32px 28px;">
             <div style="font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;margin-bottom:6px;">lingoaz</div>
             <div style="font-size:13px;color:rgba(255,255,255,0.75);">Azərbaycan dili öyrənmə platforması</div>
           </td>
