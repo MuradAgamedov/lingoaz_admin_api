@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Ichtrojan\Otp\Otp;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-
+use App\Jobs\SendRegisterEmail;
 class AuthController extends Controller
 {
     public function register(RegisterRequest $request)
@@ -30,7 +30,7 @@ class AuthController extends Controller
                 "email" => $validated["email"],
                 "password" => bcrypt($validated["password"]),
             ]);
-            Mail::to($validated["email"])->send(new RegisterMail($otp));
+            SendRegisterEmail::dispatch($validated["email"], $otp);
             return response()->json([
                 "message" => "You have registered successfully. Please check your email for the OTP to verify your account."
             ]);

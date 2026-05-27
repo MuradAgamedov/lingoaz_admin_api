@@ -14,6 +14,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
 Route::get("/test-job", function(){
     App\Jobs\SendMessage::dispatch("test");
+    return "Job göndərildi!";
 });
-
 include __DIR__ . '/web/auth.php';
