@@ -12,7 +12,7 @@
                    </svg>
                </button>
 
-               <div style="display:none" class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 min-w-40 py-2 px-0 bg-card shadow-md rounded-md block" role="menu" aria-orientation="vertical" aria-labelledby="hs-dropdown-default" tabindex="-1" style="position: fixed; inset: 0px auto auto 0px; margin: 0px; transform: translate3d(1209.02px, 10.5938px, 0px);" data-placement="top-start">
+               <div class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 min-w-40 py-2 px-0 bg-card shadow-md rounded-md hidden" role="menu" aria-orientation="vertical" aria-labelledby="hs-dropdown-default" tabindex="-1" data-placement="bottom-left">
                    <div class="space-y-0.5">
                        <a class="py-1.5 px-4 block font-medium hover:bg-default-100 dark:hover:bg-default-200" href="{{route($create . '.create')}}">
                            Create new
