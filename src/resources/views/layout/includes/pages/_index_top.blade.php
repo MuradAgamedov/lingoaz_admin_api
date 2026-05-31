@@ -4,7 +4,7 @@
            <a href="{{route($create . '.create')}}" class="btn bg-primary text-white px-4 py-2 rounded-md">
                Create new
            </a>
-           <button type="button" onclick="submitBulkDelete()" class="btn bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
+           <button type="button" onclick="submitBulkDelete()" class="btn" style="background-color:#dc2626;color:#fff;">
                Delete selected
            </button>
        </div>
