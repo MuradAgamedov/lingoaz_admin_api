@@ -22,7 +22,11 @@ class DictionaryCategoryController extends Controller
 
     public function bulkDelete(Request $request)
     {
-        dd($request->all());
+        $ids = $request->input('ids', []);
+        if (!empty($ids)) {
+            $this->service->bulkDelete($ids);
+        }
+        return redirect()->route('dictionary-category.index');
     }
 
     public function create()
