@@ -15,10 +15,11 @@ class UserDictionaryCategoryController extends Controller
     {
         try {
             $uid        = auth()->id();
-            $categories = Cache::remember("user_{$uid}_dict_cats", 600, fn() =>
-                UserDictionaryCategory::where('user_id', $uid)->get()
-            );
-            return JsonResponse::success(UserDictionaryCategoryResource::collection($categories));
+            $data = Cache::remember("user_{$uid}_dict_cats", 600, function() use ($uid) {
+                $categories = UserDictionaryCategory::where('user_id', $uid)->get();
+                return UserDictionaryCategoryResource::collection($categories)->resolve();
+            });
+            return JsonResponse::success($data);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }

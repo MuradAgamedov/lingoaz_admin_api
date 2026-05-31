@@ -14,10 +14,11 @@ class DictionaryCategoryController extends Controller
     public function index()
     {
         try {
-            $categories = Cache::remember('dict_categories', 3600, fn() =>
-                DictionaryCategory::orderBy('title')->get()
-            );
-            return JsonResponse::success(DictionaryCategoryResource::collection($categories));
+            $data = Cache::remember('dict_categories', 3600, function() {
+                $categories = DictionaryCategory::orderBy('title')->get();
+                return DictionaryCategoryResource::collection($categories)->resolve();
+            });
+            return JsonResponse::success($data);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
@@ -26,11 +27,12 @@ class DictionaryCategoryController extends Controller
     public function words(int $id)
     {
         try {
-            $words = Cache::remember("dict_words_{$id}", 3600, function () use ($id) {
+            $data = Cache::remember("dict_words_{$id}", 3600, function () use ($id) {
                 $category = DictionaryCategory::findOrFail($id);
-                return $category->dictionaries()->orderBy('word')->get();
+                $words = $category->dictionaries()->orderBy('word')->get();
+                return DictionaryWordResource::collection($words)->resolve();
             });
-            return JsonResponse::success(DictionaryWordResource::collection($words));
+            return JsonResponse::success($data);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
