@@ -38,8 +38,13 @@ class DictionaryCategoryService
         return $this->repository->delete($id);
     }
 
-    public function paginate($perPage = 15)
+    public function paginate($perPage = 15, $search = null)
     {
-        return $this->repository->paginate($perPage);
+        return $this->repository->paginate($perPage, $search);
+    }
+
+    public function bulkDelete(array $ids)
+    {
+        return $this->repository->bulkDelete($ids);
     }
 }

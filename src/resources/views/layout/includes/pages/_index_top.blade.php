@@ -18,11 +18,33 @@
                            Create new
                        </a>
 
-                       <a class="py-1.5 px-4 block font-medium hover:bg-default-100 dark:hover:bg-default-200" href="#">
-                           Delete selected
-                       </a>
+                       <a class="py-1.5 px-4 block font-medium hover:bg-default-100 dark:hover:bg-default-200 text-red-600 cursor-pointer" onclick="event.preventDefault(); submitBulkDelete();">
+                            Delete selected
+                        </a>
                    </div>
                </div>
            </div>
        </div>
    </div>
+
+<script>
+    if (typeof submitBulkDelete === 'undefined') {
+        function submitBulkDelete() {
+            const form = document.getElementById('bulk-delete-form');
+            if (!form) {
+                alert('No bulk action form found on this page.');
+                return;
+            }
+            
+            const checked = form.querySelectorAll('input[name="ids[]"]:checked');
+            if (checked.length === 0) {
+                alert('Please select at least one item to delete.');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete the selected items?')) {
+                form.submit();
+            }
+        }
+    }
+</script>

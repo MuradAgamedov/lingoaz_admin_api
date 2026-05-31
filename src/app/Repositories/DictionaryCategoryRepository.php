@@ -64,8 +64,24 @@ class DictionaryCategoryRepository
         return false;
     }
 
-    public function paginate($perPage = 15)
+    public function paginate($perPage = 15, $search = null)
     {
-        return $this->model->paginate($perPage);
+        $query = $this->model->newQuery();
+        if ($search) {
+            $query->where('title', 'like', "%{$search}%");
+        }
+        return $query->paginate($perPage);
+    }
+
+    public function bulkDelete(array $ids)
+    {
+        $categories = $this->model->whereIn('id', $ids)->get();
+        foreach ($categories as $category) {
+            if ($category->image) {
+                Storage::disk('public')->delete($category->image);
+            }
+            $category->delete();
+        }
+        return true;
     }
 }

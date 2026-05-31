@@ -13,10 +13,20 @@ class DictionaryCategoryController extends Controller
         protected DictionaryCategoryService $service
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        $categories = $this->service->paginate(300);
-        return view('pages.dictionary-category.index', compact('categories'));
+        $search = $request->get('search');
+        $categories = $this->service->paginate(300, $search);
+        return view('pages.dictionary-category.index', compact('categories', 'search'));
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (!empty($ids)) {
+            $this->service->bulkDelete($ids);
+        }
+        return redirect()->route('dictionary-category.index');
     }
 
     public function create()

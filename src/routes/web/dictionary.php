@@ -7,6 +7,7 @@ use App\Http\Controllers\WordOfDayController;
 use Illuminate\Support\Facades\Route;
 
 Route::resource('/dictionary', DictionaryController::class);
+Route::post('/dictionary-category/bulk-delete', [DictionaryCategoryController::class, 'bulkDelete'])->name('dictionary-category.bulk-delete');
 Route::resource('/dictionary-category', DictionaryCategoryController::class);
 Route::prefix('/dictionary/{dictionaryId}/meaning')->group(function () {
     Route::get('/', [\App\Http\Controllers\DictionaryMeaningController::class, 'index'])->name('dictionary.meaning.index');
