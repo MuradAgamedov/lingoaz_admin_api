@@ -30,29 +30,31 @@
                         <button type="submit" class="btn bg-primary text-white px-4 py-2 rounded-md">Search</button>
                     </form>
 
-                    <!-- Bulk Delete Form -->
+                    <!-- Bulk Delete Form (outside table to avoid nested forms) -->
                     <form id="bulk-delete-form" method="POST" action="{{ route('dictionary-category.bulk-delete') }}">
                         @csrf
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead class="text-left">
-                                    <tr>
-                                        <th class="px-3.5 py-2.5 font-semibold border-b border-default-200 dark:border-white/14 w-12">
-                                            <input type="checkbox" id="select-all" class="form-checkbox rounded text-primary">
-                                        </th>
-                                        <th class="px-3.5 py-2.5 font-semibold border-b border-default-200 dark:border-white/14">ID</th>
-                                        <th class="px-3.5 py-2.5 font-semibold border-b border-default-200 dark:border-white/14">Title</th>
-                                        <th class="px-3.5 py-2.5 font-semibold border-b border-default-200 dark:border-white/14">Image</th>
-                                        <th class="px-3.5 py-2.5 font-semibold border-b border-default-200 dark:border-white/14">Action</th>
-                                    </tr>
-                                </thead>
+                    </form>
 
-                                <tbody>
-                                    @foreach($categories as $category)
-                                    <tr>
-                                        <td class="px-3.5 py-2.5 border-y border-default-200 dark:border-white/14">
-                                            <input type="checkbox" name="ids[]" value="{{ $category->id }}" class="category-checkbox form-checkbox rounded text-primary">
-                                        </td>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="text-left">
+                                <tr>
+                                    <th class="px-3.5 py-2.5 font-semibold border-b border-default-200 dark:border-white/14 w-12">
+                                        <input type="checkbox" id="select-all" class="form-checkbox rounded text-primary">
+                                    </th>
+                                    <th class="px-3.5 py-2.5 font-semibold border-b border-default-200 dark:border-white/14">ID</th>
+                                    <th class="px-3.5 py-2.5 font-semibold border-b border-default-200 dark:border-white/14">Title</th>
+                                    <th class="px-3.5 py-2.5 font-semibold border-b border-default-200 dark:border-white/14">Image</th>
+                                    <th class="px-3.5 py-2.5 font-semibold border-b border-default-200 dark:border-white/14">Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach($categories as $category)
+                                <tr>
+                                    <td class="px-3.5 py-2.5 border-y border-default-200 dark:border-white/14">
+                                        <input type="checkbox" name="ids[]" value="{{ $category->id }}" form="bulk-delete-form" class="category-checkbox form-checkbox rounded text-primary">
+                                    </td>
                                         <td class="px-3.5 py-2.5 border-y border-default-200 dark:border-white/14">#{{ $category->id }}</td>
                                         <td class="px-3.5 py-2.5 border-y border-default-200 dark:border-white/14">{{ $category->title }}</td>
                                         <td class="px-3.5 py-2.5 border-y border-default-200 dark:border-white/14">
@@ -80,7 +82,6 @@
                                 </tbody>
                             </table>
                         </div>
-                    </form>
 
                     <div class="mt-4">
                         {{ $categories->appends(request()->input())->links('vendor.pagination.default') }}
