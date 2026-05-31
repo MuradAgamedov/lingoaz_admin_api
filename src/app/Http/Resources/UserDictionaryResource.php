@@ -14,6 +14,7 @@ class UserDictionaryResource extends JsonResource
             'word'                     => $this->word,
             'translation'              => $this->translation,
             'user_dictionary_group_id' => $this->user_dictionary_group_id,
+            'category_ids'             => $this->categories->pluck('id')->all(),
             'audio_urls'               => collect($this->audio_urls ?? [])
                                             ->map(fn($p) => url('storage/' . $p))
                                             ->values(),

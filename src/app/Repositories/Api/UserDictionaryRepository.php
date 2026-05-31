@@ -105,7 +105,7 @@ class UserDictionaryRepository
 
     public function paginate($perPage = 50, array $filters = [])
     {
-        $query = $this->model->where('user_id', auth()->id());
+        $query = $this->model->where('user_id', auth()->id())->with('categories');
         if (!empty($filters['user_dictionary_group_id'])) {
             $query->where('user_dictionary_group_id', $filters['user_dictionary_group_id']);
         }
