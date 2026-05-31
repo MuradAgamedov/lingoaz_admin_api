@@ -30,10 +30,11 @@ class UserDictionaryController extends Controller
             $v       = Cache::get("user_{$uid}_dicts_v", 0);
             $key     = "user_{$uid}_dicts_{$groupId}_{$catId}_v{$v}";
 
-            $words = Cache::remember($key, 600, fn() =>
-                $this->service->paginate(50, $filters)
-            );
-            return JsonResponse::success(UserDictionaryResource::collection($words));
+            $data = Cache::remember($key, 600, function() use ($filters) {
+                $words = $this->service->paginate(50, $filters);
+                return UserDictionaryResource::collection($words)->response()->getData(true);
+            });
+            return response()->json($data);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
@@ -54,10 +55,11 @@ class UserDictionaryController extends Controller
     {
         try {
             $uid  = auth()->id();
-            $word = Cache::remember("user_{$uid}_dict_{$id}", 600, fn() =>
-                $this->service->find($id)
-            );
-            return JsonResponse::success(UserDictionaryResource::make($word));
+            $data = Cache::remember("user_{$uid}_dict_{$id}", 600, function() use ($id) {
+                $word = $this->service->find($id);
+                return UserDictionaryResource::make($word)->resolve();
+            });
+            return JsonResponse::success($data);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
