@@ -39,7 +39,38 @@
             }
             
             if (confirm('Are you sure you want to delete the selected items?')) {
-                form.submit();
+                const formData = new FormData(form);
+                const url = form.getAttribute('action');
+                
+                fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                    }
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        response.text().then(text => {
+                            console.error('Server Error:', text);
+                            // If there is dd() output, alert or display it
+                            if (text.includes('sf-dump') || text.length < 500) {
+                                document.body.innerHTML = text;
+                            } else {
+                                alert('Error: ' + response.status + ' ' + response.statusText);
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Network Error:', error);
+                    alert('Network error. Check browser console.');
+                });
             }
         }
     }
