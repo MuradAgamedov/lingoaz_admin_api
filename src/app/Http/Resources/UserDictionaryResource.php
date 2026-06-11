@@ -17,7 +17,8 @@ class UserDictionaryResource extends JsonResource
             'category_ids'             => $this->categories->pluck('id')->all(),
             'audio_urls'               => collect($this->audio_urls ?? [])
                                             ->map(fn($p) => url('storage/' . $p))
-                                            ->values(),
+                                            ->values()
+                                            ->all(),
             'created_at'               => $this->created_at?->toISOString(),
         ];
     }

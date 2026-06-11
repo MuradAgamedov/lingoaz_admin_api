@@ -15,7 +15,8 @@ class DictionaryWordResource extends JsonResource
             'image_url'   => $this->image ? url('storage/' . $this->image) : null,
             'audio_urls'  => collect($this->audio_urls ?? [])
                 ->map(fn($p) => url('storage/' . $p))
-                ->values(),
+                ->values()
+                ->all(),
         ];
     }
 }

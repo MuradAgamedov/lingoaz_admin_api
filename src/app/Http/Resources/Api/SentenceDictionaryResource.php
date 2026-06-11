@@ -15,7 +15,8 @@ class SentenceDictionaryResource extends JsonResource
             'translation'                           => $this->translation,
             'audio_urls'                            => collect($this->audio_urls ?? [])
                                                         ->map(fn($p) => url('storage/' . $p))
-                                                        ->values(),
+                                                        ->values()
+                                                        ->all(),
         ];
     }
 }
