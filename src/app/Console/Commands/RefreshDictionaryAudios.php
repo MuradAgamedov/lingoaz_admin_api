@@ -131,7 +131,7 @@ class RefreshDictionaryAudios extends Command
 
                 /*
                 |--------------------------------------------------------------------------
-                | Download all audios
+                | Download all audios (retry up to 3 times per URL)
                 |--------------------------------------------------------------------------
                 */
 
@@ -139,31 +139,49 @@ class RefreshDictionaryAudios extends Command
 
                 foreach ($audioUrls as $audioIndex => $audioUrl) {
 
-                    try {
+                    $downloaded = false;
 
-                        $audioResponse = Http::timeout(60)->get($audioUrl);
+                    for ($attempt = 1; $attempt <= 3; $attempt++) {
 
-                        if (!$audioResponse->successful()) {
+                        try {
 
-                            $this->warn("Audio download failed: {$audioUrl}");
+                            $audioResponse = Http::timeout(60)->get($audioUrl);
 
-                            continue;
+                            if (!$audioResponse->successful()) {
+
+                                $this->warn("Attempt {$attempt}/3 failed [{$audioUrl}]");
+
+                                usleep(500000);
+
+                                continue;
+                            }
+
+                            $fileName = Str::slug($word) . '-' . ($audioIndex + 1) . '.mp3';
+
+                            $audioPath = 'dictionary/' . $fileName;
+
+                            Storage::disk('public')->put(
+                                $audioPath,
+                                $audioResponse->body()
+                            );
+
+                            $audioPaths[] = $audioPath;
+
+                            $downloaded = true;
+
+                            break;
+
+                        } catch (\Exception $e) {
+
+                            $this->warn("Attempt {$attempt}/3 exception [{$word}]: {$e->getMessage()}");
+
+                            usleep(500000);
                         }
+                    }
 
-                        $fileName = Str::slug($word) . '-' . ($audioIndex + 1) . '.mp3';
+                    if (!$downloaded) {
 
-                        $audioPath = 'dictionary/' . $fileName;
-
-                        Storage::disk('public')->put(
-                            $audioPath,
-                            $audioResponse->body()
-                        );
-
-                        $audioPaths[] = $audioPath;
-
-                    } catch (\Exception $e) {
-
-                        $this->warn("Audio exception: {$word}");
+                        $this->error("All 3 attempts failed for audio: {$audioUrl}");
                     }
                 }
 
