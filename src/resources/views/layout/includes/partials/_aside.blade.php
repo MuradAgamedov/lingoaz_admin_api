@@ -70,6 +70,13 @@
                           </a>
                       </li>
 
+                      <li class="menu-item">
+                           <a href="{{ route('users.index') }}" class="menu-link">
+                               <span class="menu-icon"><i data-lucide="users"></i></span>
+                               <span class="menu-text"> İstifadəçilər </span>
+                           </a>
+                       </li>
+
 
 
                   </ul>

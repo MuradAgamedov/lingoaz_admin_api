@@ -8,6 +8,12 @@ Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin', [HomeController::class, 'index'])->name('home');
+    
+    // User management routes
+    Route::get('/admin/users', [\App\Http\Controllers\UserController::class, 'index'])->name('users.index');
+    Route::post('/admin/users/{id}/toggle-admin', [\App\Http\Controllers\UserController::class, 'toggleAdmin'])->name('users.toggle-admin');
+    Route::delete('/admin/users/{id}', [\App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy');
+    
     include __DIR__ . '/web/dictionary.php';
 });
 
