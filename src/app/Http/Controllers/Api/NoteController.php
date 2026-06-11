@@ -9,7 +9,6 @@ use App\Http\Resources\Api\NoteResource;
 use App\Helpers\JsonResponse;
 use App\Services\NoteService;
 use App\Services\NoteGroupService;
-use Illuminate\Support\Facades\Cache;
 
 class NoteController extends Controller
 {
@@ -28,9 +27,7 @@ class NoteController extends Controller
         try {
             if (!$this->authorizeGroup($groupId)) return JsonResponse::error('Not found', 404);
             $uid   = auth()->id();
-            $notes = Cache::remember("user_{$uid}_notes_{$groupId}", 600, fn() =>
-                $this->service->allForGroup($groupId, $uid)
-            );
+            $notes = $this->service->allForGroup($groupId, $uid);
             return JsonResponse::success(NoteResource::collection($notes));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -46,7 +43,6 @@ class NoteController extends Controller
                 'user_id'       => $uid,
                 'note_group_id' => $groupId,
             ]));
-            Cache::forget("user_{$uid}_notes_{$groupId}");
             return JsonResponse::success(new NoteResource($note), 'Created', 201);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -60,7 +56,6 @@ class NoteController extends Controller
             $uid  = auth()->id();
             $note = $this->service->update($id, $uid, $request->validated());
             if (!$note) return JsonResponse::error('Not found', 404);
-            Cache::forget("user_{$uid}_notes_{$groupId}");
             return JsonResponse::success(new NoteResource($note));
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
@@ -74,7 +69,6 @@ class NoteController extends Controller
             $uid     = auth()->id();
             $deleted = $this->service->delete($id, $uid);
             if (!$deleted) return JsonResponse::error('Not found', 404);
-            Cache::forget("user_{$uid}_notes_{$groupId}");
             return JsonResponse::success(null, 'Deleted');
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
