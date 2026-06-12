@@ -31,6 +31,7 @@ RUN composer install \
     --prefer-dist \
     --optimize-autoloader
 
+COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 COPY docker/supervisor/laravel-worker.conf /etc/supervisor/conf.d/laravel-worker.conf
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 

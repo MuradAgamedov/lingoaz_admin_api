@@ -18,7 +18,7 @@ class ApkReleaseController extends Controller
     {
         $request->validate([
             'version' => 'required|string|max:50',
-            'apk'     => 'required|file|mimes:apk|max:204800', // 200 MB
+            'apk'     => 'required|file|mimes:apk',
         ]);
 
         $file     = $request->file('apk');
