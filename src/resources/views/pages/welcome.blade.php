@@ -493,55 +493,21 @@
             font-size: 1.8rem;
         }
 
-        /* ── APK selector in modal ── */
-        .apk-list {
+        /* ── APK info box ── */
+        .apk-info-box {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1.5px solid rgba(67,233,123,0.25);
+            background: rgba(67,233,123,0.07);
             margin-bottom: 20px;
             text-align: left;
         }
-        .apk-option {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 14px 16px;
-            border-radius: 14px;
-            border: 1.5px solid var(--border);
-            background: rgba(255,255,255,0.03);
-            cursor: pointer;
-            transition: all 0.2s;
-            user-select: none;
-        }
-        .apk-option:hover { border-color: rgba(108,99,255,0.5); background: rgba(108,99,255,0.07); }
-        .apk-option.selected { border-color: var(--primary); background: rgba(108,99,255,0.12); }
-        .apk-radio {
-            width: 18px; height: 18px;
-            border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.3);
-            flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
-        }
-        .apk-option.selected .apk-radio { border-color: var(--primary); background: var(--primary); }
-        .apk-option.selected .apk-radio::after {
-            content: '';
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: #fff;
-        }
-        .apk-info { flex: 1; }
-        .apk-name { font-size: 0.9rem; font-weight: 600; margin-bottom: 2px; }
-        .apk-desc { font-size: 0.75rem; color: var(--text-muted); }
-        .apk-badge {
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 20px;
-            background: rgba(67,233,123,0.15);
-            color: #43e97b;
-            border: 1px solid rgba(67,233,123,0.3);
-        }
+        .apk-info-icon { font-size: 1.6rem; flex-shrink: 0; }
+        .apk-info-name { font-size: 0.9rem; font-weight: 600; margin-bottom: 2px; }
+        .apk-info-meta { font-size: 0.75rem; color: var(--text-muted); }
 
         /* ── Coming soon btn ── */
         .store-btn-disabled {
@@ -730,22 +696,32 @@
     <!-- Download -->
     <section class="download-section" id="download">
         <div class="download-card">
-            <div class="version-badge">
-                ✦ Cari versiya: v1.0.0
-            </div>
+            @if($apkVersion)
+                <div class="version-badge">✦ Cari versiya: v{{ $apkVersion }}</div>
+            @endif
             <h2 class="download-title">Öyrənməyə bu gün başla</h2>
             <p class="download-desc">
                 LingoAZ-ı yüklə, hesabını yarat və şəxsi lüğətini qurmağa başla. Tamamilə pulsuzdur.<br>
                 <span style="color:rgba(255,255,255,0.45); font-size:0.85rem;">Hazırda yalnız Android üçün mövcuddur.</span>
             </p>
             <div class="download-btns">
-                <button onclick="openModal()" class="store-btn" style="border:none;cursor:pointer;">
-                    <span class="store-btn-icon">🤖</span>
-                    <span class="store-btn-text">
-                        <span class="store-btn-small">Android üçün yüklə</span>
-                        <span class="store-btn-name">APK Yüklə</span>
-                    </span>
-                </button>
+                @if($apkUrl)
+                    <button onclick="openModal()" class="store-btn" style="border:none;cursor:pointer;">
+                        <span class="store-btn-icon">🤖</span>
+                        <span class="store-btn-text">
+                            <span class="store-btn-small">Android üçün yüklə{{ $apkSize ? ' · ' . $apkSize : '' }}</span>
+                            <span class="store-btn-name">APK Yüklə</span>
+                        </span>
+                    </button>
+                @else
+                    <div class="store-btn-disabled" style="cursor:default;">
+                        <span class="store-btn-icon" style="font-size:1.8rem;line-height:1;opacity:0.4;">🤖</span>
+                        <span class="store-btn-text">
+                            <span class="store-btn-small" style="color:rgba(255,255,255,0.25);">Tezliklə mövcud olacaq</span>
+                            <span class="store-btn-name" style="display:block;font-size:1rem;font-weight:800;">Android</span>
+                        </span>
+                    </div>
+                @endif
                 <div class="store-btn-disabled">
                     <span class="coming-soon-tag">Tezliklə</span>
                     <span class="store-btn-icon" style="font-size:1.8rem;line-height:1;opacity:0.4;">🍎</span>
@@ -764,53 +740,31 @@
             <button class="modal-close" onclick="closeModal()">✕</button>
 
             <div class="modal-form-content" id="modalForm">
-                <div class="modal-icon">🤖</div>
-                <h3 class="modal-title">Android APK yüklə</h3>
-                <p class="modal-desc" style="margin-bottom:18px;">
-                    Cihazınıza uyğun versiyası seçin. Əmin deyilsinizsə — <strong style="color:rgba(255,255,255,0.75);">Universal</strong> seçin.
-                </p>
+                <div class="modal-icon">🔔</div>
+                <h3 class="modal-title">Yeni versiyalardan xəbər al</h3>
 
-                {{-- APK seçimi --}}
-                <div class="apk-list">
-                    <div class="apk-option selected" onclick="selectApk(this, 'universal')" id="apk-universal">
-                        <div class="apk-radio"></div>
-                        <div class="apk-info">
-                            <div class="apk-name">Universal APK</div>
-                            <div class="apk-desc">Bütün cihazlar üçün uyğundur · ~50 MB</div>
-                        </div>
-                        <span class="apk-badge">Tövsiyə</span>
-                    </div>
-                    <div class="apk-option" onclick="selectApk(this, 'arm64')" id="apk-arm64">
-                        <div class="apk-radio"></div>
-                        <div class="apk-info">
-                            <div class="apk-name">ARM64-v8a</div>
-                            <div class="apk-desc">2018+ yeni Android cihazlar · ~35 MB</div>
-                        </div>
-                    </div>
-                    <div class="apk-option" onclick="selectApk(this, 'armv7')" id="apk-armv7">
-                        <div class="apk-radio"></div>
-                        <div class="apk-info">
-                            <div class="apk-name">ARMv7</div>
-                            <div class="apk-desc">Köhnə Android cihazlar · ~32 MB</div>
-                        </div>
+                <div class="apk-info-box">
+                    <span class="apk-info-icon">🤖</span>
+                    <div>
+                        <div class="apk-info-name">LingoAZ{{ $apkVersion ? ' v' . $apkVersion : '' }}</div>
+                        <div class="apk-info-meta">Android APK{{ $apkSize ? ' · ' . $apkSize : '' }}</div>
                     </div>
                 </div>
 
-                {{-- E-poçt --}}
+                <p class="modal-desc">
+                    E-poçtunu daxil et — yeni yeniləmə çıxanda bildiriş göndərək.<br>
+                    <strong style="color:rgba(255,255,255,0.7);">Məcburi deyil</strong> — boş buraxıb birbaşa yüklə.
+                </p>
                 <div class="modal-input-wrap">
-                    <input
-                        type="email"
-                        id="emailInput"
-                        class="modal-input"
-                        placeholder="E-poçt adresiniz (məcburi deyil)"
-                    >
+                    <input type="email" id="emailInput" class="modal-input"
+                        placeholder="E-poçt adresiniz (məcburi deyil)">
                     <button class="modal-submit" onclick="handleDownload()">
                         Yüklə →
                     </button>
                 </div>
                 <p class="modal-skip">
-                    E-poçt məcburi deyil —
-                    <a onclick="handleDownload()">birbaşa yüklə</a>
+                    E-poçt yazmaq istəmirsən?
+                    <a onclick="handleDownload()">Birbaşa yüklə</a>
                 </p>
             </div>
 
@@ -833,29 +787,12 @@
 </div>
 
 <script>
-    // APK faylları — hazır olanda linkləri buraya əlavə et
-    const apkLinks = {
-        universal: '#',   // universal.apk linki
-        arm64:     '#',   // arm64-v8a.apk linki
-        armv7:     '#',   // armeabi-v7a.apk linki
-    };
-
-    let selectedApk = 'universal';
-
-    function selectApk(el, apk) {
-        document.querySelectorAll('.apk-option').forEach(o => o.classList.remove('selected'));
-        el.classList.add('selected');
-        selectedApk = apk;
-    }
+    const apkUrl = '{{ $apkUrl ?? '' }}';
 
     function openModal() {
         document.getElementById('modalForm').classList.remove('hide');
         document.getElementById('modalSuccess').classList.remove('show');
         document.getElementById('emailInput').value = '';
-        // İlk seçimi sıfırla
-        document.querySelectorAll('.apk-option').forEach(o => o.classList.remove('selected'));
-        document.getElementById('apk-universal').classList.add('selected');
-        selectedApk = 'universal';
         document.getElementById('downloadModal').classList.add('open');
     }
 
@@ -865,7 +802,6 @@
 
     async function handleDownload() {
         const email = document.getElementById('emailInput').value.trim();
-        const link  = apkLinks[selectedApk] || '#';
 
         if (email) {
             try {
@@ -875,20 +811,21 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     },
-                    body: JSON.stringify({ email, store: 'android_' + selectedApk }),
+                    body: JSON.stringify({ email, store: 'android' }),
                 });
             } catch (_) {}
 
             document.getElementById('modalForm').classList.add('hide');
             document.getElementById('modalSuccess').classList.add('show');
-            setTimeout(() => {
-                closeModal();
-                window.location.href = link;
-            }, 1600);
+            setTimeout(() => { closeModal(); startDownload(); }, 1600);
         } else {
             closeModal();
-            window.location.href = link;
+            startDownload();
         }
+    }
+
+    function startDownload() {
+        if (apkUrl) window.location.href = apkUrl;
     }
 
     document.getElementById('downloadModal').addEventListener('click', function(e) {

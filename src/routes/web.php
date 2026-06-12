@@ -19,6 +19,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/subscribers', [\App\Http\Controllers\NewsletterController::class, 'index'])->name('subscribers.index');
     Route::delete('/admin/subscribers/{id}', [\App\Http\Controllers\NewsletterController::class, 'destroy'])->name('subscribers.destroy');
 
+    // APK releases
+    Route::get('/admin/apk',             [\App\Http\Controllers\ApkReleaseController::class, 'index'])->name('apk.index');
+    Route::post('/admin/apk',            [\App\Http\Controllers\ApkReleaseController::class, 'store'])->name('apk.store');
+    Route::post('/admin/apk/{id}/activate', [\App\Http\Controllers\ApkReleaseController::class, 'activate'])->name('apk.activate');
+    Route::delete('/admin/apk/{id}',     [\App\Http\Controllers\ApkReleaseController::class, 'destroy'])->name('apk.destroy');
+
     include __DIR__ . '/web/dictionary.php';
 });
 

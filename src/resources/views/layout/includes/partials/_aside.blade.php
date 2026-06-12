@@ -84,6 +84,13 @@
                            </a>
                        </li>
 
+                      <li class="menu-item">
+                           <a href="{{ route('apk.index') }}" class="menu-link">
+                               <span class="menu-icon"><i data-lucide="smartphone"></i></span>
+                               <span class="menu-text"> APK Buraxılışları </span>
+                           </a>
+                       </li>
+
                   </ul>
 
               </div>
