@@ -11,7 +11,7 @@ class NewsletterController extends Controller
     {
         $request->validate([
             'email' => 'required|email|max:255',
-            'store' => 'nullable|in:appstore,googleplay',
+            'store' => 'nullable|string|max:50',
         ]);
 
         NewsletterSubscriber::firstOrCreate(
