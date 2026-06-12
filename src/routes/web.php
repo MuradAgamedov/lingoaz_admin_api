@@ -5,15 +5,20 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\WelcomeController;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
+Route::post('/newsletter/subscribe', [\App\Http\Controllers\NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin', [HomeController::class, 'index'])->name('home');
-    
+
     // User management routes
     Route::get('/admin/users', [\App\Http\Controllers\UserController::class, 'index'])->name('users.index');
     Route::post('/admin/users/{id}/toggle-admin', [\App\Http\Controllers\UserController::class, 'toggleAdmin'])->name('users.toggle-admin');
     Route::delete('/admin/users/{id}', [\App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy');
-    
+
+    // Newsletter subscribers
+    Route::get('/admin/subscribers', [\App\Http\Controllers\NewsletterController::class, 'index'])->name('subscribers.index');
+    Route::delete('/admin/subscribers/{id}', [\App\Http\Controllers\NewsletterController::class, 'destroy'])->name('subscribers.destroy');
+
     include __DIR__ . '/web/dictionary.php';
 });
 

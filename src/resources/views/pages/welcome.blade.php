@@ -728,11 +728,21 @@
         document.getElementById('downloadModal').classList.remove('open');
     }
 
-    function handleDownload() {
+    async function handleDownload() {
         const email = document.getElementById('emailInput').value.trim();
 
         if (email) {
-            // E-poçt varsa — success göstər, sonra yönləndir
+            try {
+                await fetch('{{ route("newsletter.subscribe") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                    body: JSON.stringify({ email, store: currentStore }),
+                });
+            } catch (_) {}
+
             document.getElementById('modalForm').classList.add('hide');
             document.getElementById('modalSuccess').classList.add('show');
             setTimeout(() => {
@@ -740,18 +750,15 @@
                 window.open(storeLinks[currentStore], '_blank');
             }, 1800);
         } else {
-            // E-poçt yoxdursa — birbaşa yönləndir
             closeModal();
             window.open(storeLinks[currentStore], '_blank');
         }
     }
 
-    // Overlay-ə klikdə bağla
     document.getElementById('downloadModal').addEventListener('click', function(e) {
         if (e.target === this) closeModal();
     });
 
-    // ESC ilə bağla
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') closeModal();
     });
