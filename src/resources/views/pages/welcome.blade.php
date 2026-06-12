@@ -365,6 +365,134 @@
         .store-btn-small { font-size: 0.7rem; font-weight: 500; color: #555; display: block; }
         .store-btn-name { font-size: 1rem; font-weight: 800; display: block; }
 
+        /* ── Modal ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(6px);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+        }
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .modal {
+            background: #12122a;
+            border: 1px solid rgba(108,99,255,0.35);
+            border-radius: 28px;
+            padding: 44px 40px;
+            max-width: 460px;
+            width: 100%;
+            position: relative;
+            transform: translateY(20px) scale(0.97);
+            transition: transform 0.25s;
+            text-align: center;
+        }
+        .modal-overlay.open .modal {
+            transform: translateY(0) scale(1);
+        }
+        .modal-close {
+            position: absolute;
+            top: 18px; right: 18px;
+            background: rgba(255,255,255,0.07);
+            border: none;
+            color: rgba(255,255,255,0.5);
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .modal-close:hover { background: rgba(255,255,255,0.14); color: #fff; }
+        .modal-icon {
+            font-size: 2.6rem;
+            margin-bottom: 16px;
+        }
+        .modal-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+        }
+        .modal-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.65;
+            margin-bottom: 28px;
+        }
+        .modal-input-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: 1.5px solid var(--border);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .modal-input::placeholder { color: rgba(255,255,255,0.3); }
+        .modal-input:focus { border-color: var(--primary); background: rgba(108,99,255,0.07); }
+        .modal-submit {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            background: var(--primary);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            box-shadow: 0 6px 24px rgba(108,99,255,0.4);
+        }
+        .modal-submit:hover { background: #7c75ff; transform: translateY(-2px); }
+        .modal-skip {
+            margin-top: 14px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .modal-skip a {
+            color: rgba(255,255,255,0.45);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .modal-skip a:hover { color: #fff; }
+        .modal-success {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .modal-success.show { display: flex; }
+        .modal-form-content.hide { display: none; }
+        .success-icon {
+            width: 60px; height: 60px;
+            background: rgba(67,233,123,0.15);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem;
+        }
+
         /* ── Footer ── */
         footer {
             border-top: 1px solid var(--border);
@@ -514,23 +642,63 @@
                 LingoAZ-ı yüklə, hesabını yarat və şəxsi lüğətini qurmağa başla. Tamamilə pulsuzdur.
             </p>
             <div class="download-btns">
-                <a href="#" class="store-btn">
+                <button onclick="openModal('appstore')" class="store-btn" style="border:none;cursor:pointer;">
                     <span class="store-btn-icon">🍎</span>
                     <span class="store-btn-text">
                         <span class="store-btn-small">App Store-da yüklə</span>
                         <span class="store-btn-name">App Store</span>
                     </span>
-                </a>
-                <a href="#" class="store-btn">
+                </button>
+                <button onclick="openModal('googleplay')" class="store-btn" style="border:none;cursor:pointer;">
                     <span class="store-btn-icon">▶️</span>
                     <span class="store-btn-text">
                         <span class="store-btn-small">Google Play-də yüklə</span>
                         <span class="store-btn-name">Google Play</span>
                     </span>
-                </a>
+                </button>
             </div>
         </div>
     </section>
+
+    <!-- Download Modal -->
+    <div class="modal-overlay" id="downloadModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal()">✕</button>
+
+            <div class="modal-form-content" id="modalForm">
+                <div class="modal-icon">🔔</div>
+                <h3 class="modal-title">Yeni versiyalardan xəbər al</h3>
+                <p class="modal-desc">
+                    E-poçtunu daxil et — yeni yeniləmə çıxanda sənə bildiriş göndərək.<br>
+                    <strong style="color:rgba(255,255,255,0.7);">Məcburi deyil</strong> — boş buraxıb birbaşa davam edə bilərsən.
+                </p>
+                <div class="modal-input-wrap">
+                    <input
+                        type="email"
+                        id="emailInput"
+                        class="modal-input"
+                        placeholder="E-poçt adresiniz (məcburi deyil)"
+                    >
+                    <button class="modal-submit" onclick="handleDownload()">
+                        Davam et və yüklə →
+                    </button>
+                </div>
+                <p class="modal-skip">
+                    E-poçt yazmaq istəmirsən?
+                    <a onclick="handleDownload()">Birbaşa yüklə</a>
+                </p>
+            </div>
+
+            <div class="modal-success" id="modalSuccess">
+                <div class="success-icon">✓</div>
+                <h3 class="modal-title">Təşəkkür edirik!</h3>
+                <p class="modal-desc" style="margin-bottom:0">
+                    Yeni versiya çıxanda sizi xəbərdar edəcəyik.<br>
+                    Yönləndirilirsiniz...
+                </p>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer>
@@ -540,5 +708,53 @@
 
 </div>
 
+<script>
+    const storeLinks = {
+        appstore:   '#',   // App Store linki buraya
+        googleplay: '#',   // Google Play linki buraya
+    };
+
+    let currentStore = null;
+
+    function openModal(store) {
+        currentStore = store;
+        document.getElementById('modalForm').classList.remove('hide');
+        document.getElementById('modalSuccess').classList.remove('show');
+        document.getElementById('emailInput').value = '';
+        document.getElementById('downloadModal').classList.add('open');
+    }
+
+    function closeModal() {
+        document.getElementById('downloadModal').classList.remove('open');
+    }
+
+    function handleDownload() {
+        const email = document.getElementById('emailInput').value.trim();
+
+        if (email) {
+            // E-poçt varsa — success göstər, sonra yönləndir
+            document.getElementById('modalForm').classList.add('hide');
+            document.getElementById('modalSuccess').classList.add('show');
+            setTimeout(() => {
+                closeModal();
+                window.open(storeLinks[currentStore], '_blank');
+            }, 1800);
+        } else {
+            // E-poçt yoxdursa — birbaşa yönləndir
+            closeModal();
+            window.open(storeLinks[currentStore], '_blank');
+        }
+    }
+
+    // Overlay-ə klikdə bağla
+    document.getElementById('downloadModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    // ESC ilə bağla
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeModal();
+    });
+</script>
 </body>
 </html>
