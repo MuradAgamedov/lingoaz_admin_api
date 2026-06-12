@@ -22,10 +22,10 @@ class UserDictionaryGroupController extends Controller
         try {
             $uid = auth()->id();
             $data = Cache::remember("user_{$uid}_dict_groups", 600, function() {
-                $groups = $this->service->paginate(50, ['user']);
-                return UserDictionaryGroupResource::collection($groups)->response()->getData(true);
+                $groups = $this->service->all(['user']);
+                return UserDictionaryGroupResource::collection($groups)->resolve();
             });
-            return response()->json($data);
+            return JsonResponse::success($data);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }

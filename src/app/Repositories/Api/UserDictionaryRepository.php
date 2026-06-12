@@ -17,9 +17,18 @@ class UserDictionaryRepository
         $this->model = $model;
     }
 
-    public function all()
+    public function all(array $filters = [])
     {
-        return $this->model->where('user_id', auth()->id())->get();
+        $query = $this->model->where('user_id', auth()->id())->with('categories');
+        if (!empty($filters['user_dictionary_group_id'])) {
+            $query->where('user_dictionary_group_id', $filters['user_dictionary_group_id']);
+        }
+        if (!empty($filters['user_dictionary_category_id'])) {
+            $query->whereHas('categories', fn($q) =>
+                $q->where('user_dictionary_categories.id', $filters['user_dictionary_category_id'])
+            );
+        }
+        return $query->latest()->get();
     }
 
     public function find($id)

@@ -13,9 +13,12 @@ class UserDictionaryGroupRepository
         $this->model = $model;
     }
 
-    public function all()
+    public function all($with = [])
     {
-        return $this->model->all();
+        return $this->model
+            ->where('user_id', auth()->id())
+            ->with($with)
+            ->get();
     }
 
     public function find($id)

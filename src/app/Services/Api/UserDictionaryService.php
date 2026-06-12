@@ -13,9 +13,9 @@ class UserDictionaryService
         $this->repository = $repository;
     }
 
-    public function all()
+    public function all(array $filters = [])
     {
-        return $this->repository->all();
+        return $this->repository->all($filters);
     }
 
     public function find($id)

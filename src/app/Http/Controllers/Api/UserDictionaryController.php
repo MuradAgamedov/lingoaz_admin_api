@@ -31,10 +31,10 @@ class UserDictionaryController extends Controller
             $key     = "user_{$uid}_dicts_{$groupId}_{$catId}_v{$v}";
 
             $data = Cache::remember($key, 600, function() use ($filters) {
-                $words = $this->service->paginate(50, $filters);
-                return UserDictionaryResource::collection($words)->response()->getData(true);
+                $words = $this->service->all($filters);
+                return UserDictionaryResource::collection($words)->resolve();
             });
-            return response()->json($data);
+            return JsonResponse::success($data);
         } catch (\Exception $e) {
             return JsonResponse::error($e->getMessage());
         }
