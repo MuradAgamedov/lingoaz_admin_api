@@ -49,7 +49,7 @@
                                            file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
                                            file:text-sm file:font-semibold file:bg-primary/10 file:text-primary
                                            hover:file:bg-primary/20 cursor-pointer" required>
-                                <p class="text-xs text-default-400 mt-1.5">Maksimum 200 MB · yalnız .apk</p>
+                                <p class="text-xs text-default-400 mt-1.5">Yalnız .apk formatı</p>
                             </div>
 
                             {{-- Progress panel --}}
