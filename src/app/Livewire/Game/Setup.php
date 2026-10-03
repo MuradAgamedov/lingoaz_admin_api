@@ -84,7 +84,7 @@ class Setup extends Component
     {
         return view('livewire.game.setup', [
             'groups' => Group::where('user_id', Auth::id())->orderBy('name')->get(),
-            'allWords' => $this->filteredWordsQuery()->with('group')->orderBy('original')->get(),
+            'allWords' => $this->filteredWordsQuery()->with('group')->orderByDesc('id')->get(),
         ]);
     }
 }
