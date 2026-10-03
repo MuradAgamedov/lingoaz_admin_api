@@ -160,7 +160,9 @@ class Play extends Component
             $correct = $pool->firstWhere('id', $this->currentWordId);
             $labelField = $this->mode === 'original_to_translation' ? 'translation' : 'original';
 
-            $this->options = (new QuestionPool)->buildOptions($pool, $correct, $labelField);
+            $allWords = Word::where('user_id', Auth::id())->get();
+
+            $this->options = (new QuestionPool)->buildOptions($pool, $correct, $labelField, 4, $allWords);
         }
 
         if (array_key_exists($this->currentIndex, $this->results) && $this->mode !== 'flash_original' && $this->mode !== 'flash_translation') {
