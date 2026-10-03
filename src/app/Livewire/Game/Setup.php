@@ -21,6 +21,8 @@ class Setup extends Component
 
     public string $filterGroup = 'all';
 
+    public string $search = '';
+
     private function filteredWordsQuery()
     {
         $query = Word::where('user_id', Auth::id());
@@ -29,6 +31,18 @@ class Setup extends Component
             $query->whereNull('group_id');
         } elseif ($this->filterGroup !== 'all') {
             $query->where('group_id', (int) $this->filterGroup);
+        }
+
+        $term = trim($this->search);
+
+        if ($term !== '') {
+            $like = '%'.addcslashes($term, '%_\\').'%';
+
+            $query->where(function ($q) use ($like) {
+                $q->where('original', 'like', $like)
+                    ->orWhere('translation', 'like', $like)
+                    ->orWhere('pronunciation', 'like', $like);
+            });
         }
 
         return $query;
@@ -41,6 +55,11 @@ class Setup extends Component
         $this->selectedWordIds = $value
             ? array_values(array_unique(array_merge($this->selectedWordIds, $visibleIds)))
             : array_values(array_diff($this->selectedWordIds, $visibleIds));
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->updatedFilterGroup();
     }
 
     public function updatedFilterGroup(): void

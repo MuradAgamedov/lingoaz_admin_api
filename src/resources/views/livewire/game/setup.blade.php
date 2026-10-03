@@ -50,6 +50,11 @@
                             </select>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="search" class="block text-sm font-medium text-gray-700 mb-1">{{ __('Söz axtar') }}</label>
+                            <input id="search" type="search" wire:model.live.debounce.300ms="search" placeholder="{{ __('Söz və ya tərcümə yazın...') }}" class="border-gray-300 rounded-md shadow-sm text-sm w-full sm:w-64">
+                        </div>
+
                         <label class="flex items-center gap-2 font-medium text-gray-900 mb-3">
                             <input type="checkbox" wire:model.live="selectAll">
                             <span>{{ __('Hamısını seç') }}</span>
@@ -66,7 +71,7 @@
                                     @endif
                                 </label>
                             @empty
-                                <p class="text-gray-400 text-sm px-3 py-2">{{ __('Hələ söz yoxdur.') }}</p>
+                                <p class="text-gray-400 text-sm px-3 py-2">{{ $search !== '' ? __('Heç nə tapılmadı.') : __('Hələ söz yoxdur.') }}</p>
                             @endforelse
                         </div>
 
