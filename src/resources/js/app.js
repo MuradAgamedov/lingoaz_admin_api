@@ -68,12 +68,11 @@ document.addEventListener('change', (e) => {
     }
 });
 
+// Auto-speak is opt-in per game: it starts switched off and is never remembered.
+window.__autoSpeak = false;
+
 window.autoSpeak = (text) => {
-    try {
-        if (localStorage.getItem('autoSpeak') === '1') window.speakItalian(text);
-    } catch (e) {
-        // localStorage may be unavailable
-    }
+    if (window.__autoSpeak) window.speakItalian(text);
 };
 
 // Keyboard shortcuts for the game screen.

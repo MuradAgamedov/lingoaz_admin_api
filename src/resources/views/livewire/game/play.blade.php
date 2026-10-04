@@ -58,7 +58,8 @@
                     </div>
 
                     <div class="p-4 sm:p-6 space-y-5 sm:space-y-6"
-                         x-data="{ auto: (() => { try { return localStorage.getItem('autoSpeak') === '1' } catch (e) { return false } })() }">
+                         x-data="{ auto: false }"
+                         x-init="window.__autoSpeak = false">
                         <div class="flex items-center justify-between text-sm text-gray-500">
                             <span>{{ __('Sual :current / :total', ['current' => $currentIndex + 1, 'total' => $total]) }}</span>
 
@@ -66,7 +67,7 @@
                                 <span>{{ __('Nəticə: :score', ['score' => $score]) }}</span>
 
                                 <button type="button"
-                                        x-on:click="auto = !auto; try { localStorage.setItem('autoSpeak', auto ? '1' : '0') } catch (e) {}"
+                                        x-on:click="auto = !auto; window.__autoSpeak = auto"
                                         :class="auto ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-white text-gray-400 border-gray-200'"
                                         class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs leading-5"
                                         title="{{ __('Avtomatik səsləndirmə') }}">
