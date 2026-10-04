@@ -107,6 +107,26 @@
                 </div>
             @endif
 
+            @if ($audioMissing > 0 || $audioGenerating || $audioMessage)
+                <div class="px-4 sm:px-0" @if ($audioGenerating) wire:poll.3s="refreshAudio" @endif>
+                    <div class="flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 text-sm
+                                {{ $audioGenerating ? 'border-indigo-200 bg-indigo-50 text-indigo-800' : ($audioMissing > 0 ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-green-200 bg-green-50 text-green-800') }}">
+                        @if ($audioGenerating)
+                            <span class="animate-pulse">⏳</span>
+                            <span>{{ __('Səslər arxa fonda yaradılır… qalıb: :n söz', ['n' => $audioMissing]) }}</span>
+                        @elseif ($audioMissing > 0)
+                            <span>🔇 {{ __(':n sözün səsi hələ yoxdur', ['n' => $audioMissing]) }}</span>
+                            <x-primary-button type="button" wire:click="generateAudio" class="!py-1.5">🎙 {{ __('Səsləri yarat') }}</x-primary-button>
+                            @if ($audioMessage)
+                                <span class="text-xs opacity-80">{{ $audioMessage }}</span>
+                            @endif
+                        @else
+                            <span>{{ $audioMessage }}</span>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3 px-4 sm:px-0">
                 <x-input-label for="filterGroupId" :value="__('Qrupa görə filtrlə:')" />
                 <select wire:model.live="filterGroupId" id="filterGroupId" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full sm:w-auto">

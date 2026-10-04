@@ -4,6 +4,8 @@ namespace App\Livewire\Dictionary;
 
 use App\Models\Group;
 use App\Models\Word;
+use App\Services\TtsService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
@@ -42,6 +44,70 @@ class Index extends Component
     public string $bulkGroupId = '';
 
     public ?string $bulkResult = null;
+
+    public bool $audioGenerating = false;
+
+    public ?string $audioMessage = null;
+
+    private function audioKey(): string
+    {
+        return 'tts-generating-'.Auth::id();
+    }
+
+    public function mount(): void
+    {
+        $this->audioGenerating = (bool) Cache::get($this->audioKey());
+    }
+
+    /**
+     * Generate the missing audio files in the background, after the response has been sent.
+     */
+    public function generateAudio(): void
+    {
+        $key = $this->audioKey();
+
+        if (Cache::get($key)) {
+            $this->audioGenerating = true;
+
+            return;
+        }
+
+        $userId = Auth::id();
+
+        if (count(app(TtsService::class)->wordsMissingAudio($userId)) === 0) {
+            $this->audioMessage = __('Bütün sözlərin səsi hazırdır ✓');
+
+            return;
+        }
+
+        Cache::put($key, true, now()->addMinutes(45));
+        $this->audioGenerating = true;
+        $this->audioMessage = null;
+
+        app()->terminating(function () use ($key, $userId) {
+            ignore_user_abort(true);
+            set_time_limit(0);
+
+            try {
+                app(TtsService::class)->generateMissing($userId);
+            } finally {
+                Cache::forget($key);
+            }
+        });
+    }
+
+    public function refreshAudio(): void
+    {
+        if (Cache::get($this->audioKey())) {
+            return;
+        }
+
+        $this->audioGenerating = false;
+        $left = count(app(TtsService::class)->wordsMissingAudio(Auth::id()));
+        $this->audioMessage = $left === 0
+            ? __('Bütün səslər hazırdır ✓')
+            : __(':n sözün səsi yaradıla bilmədi, yenidən cəhd edin', ['n' => $left]);
+    }
 
     public function startCreate(): void
     {
@@ -225,7 +291,10 @@ class Index extends Component
             $query->where('is_starred', true);
         }
 
+        $audioMissing = count(app(TtsService::class)->wordsMissingAudio(Auth::id()));
+
         return view('livewire.dictionary.index', [
+            'audioMissing' => $audioMissing,
             'words' => $query->orderByDesc('id')->get(),
             'groups' => Group::where('user_id', Auth::id())
                 ->orderBy('name')

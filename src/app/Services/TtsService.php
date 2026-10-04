@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Word;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -33,6 +34,51 @@ class TtsService
     public function relativePath(string $text, ?string $voice = null): string
     {
         return 'tts/'.$this->voice($voice).'/'.md5(mb_strtolower($this->normalize($text))).'.wav';
+    }
+
+    /**
+     * Distinct dictionary words that are missing audio for at least one voice.
+     *
+     * @return array<int, string>
+     */
+    public function wordsMissingAudio(int $userId): array
+    {
+        $disk = Storage::disk('public');
+
+        return Word::where('user_id', $userId)
+            ->distinct()
+            ->pluck('original')
+            ->filter(function (string $text) use ($disk) {
+                foreach (array_keys(self::VOICES) as $voice) {
+                    if (mb_strlen($this->normalize($text)) <= self::MAX_LENGTH
+                        && ! $disk->exists($this->relativePath($text, $voice))) {
+                        return true;
+                    }
+                }
+
+                return false;
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Generate every missing audio file (all voices) for the user's words.
+     * Returns the number of files that could not be generated.
+     */
+    public function generateMissing(int $userId): int
+    {
+        $failed = 0;
+
+        foreach ($this->wordsMissingAudio($userId) as $text) {
+            foreach (array_keys(self::VOICES) as $voice) {
+                if ($this->ensure($text, $voice) === null) {
+                    $failed++;
+                }
+            }
+        }
+
+        return $failed;
     }
 
     /**
