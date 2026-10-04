@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\TtsController;
 use App\Livewire\Dashboard\Index as DashboardIndex;
 use App\Livewire\Dictionary\Index as DictionaryIndex;
 use App\Livewire\Game\Play as GamePlay;
@@ -22,6 +23,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/qruplar', GroupsIndex::class)->name('groups.index');
     Route::get('/oyun', GameSetup::class)->name('game.setup');
     Route::get('/oyun/oyna', GamePlay::class)->name('game.play');
+    Route::get('/tts', TtsController::class)->middleware('throttle:120,1')->name('tts.speak');
 });
 
 require __DIR__.'/auth.php';

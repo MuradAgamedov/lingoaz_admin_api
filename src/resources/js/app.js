@@ -1,5 +1,7 @@
-// Italian text-to-speech (uses the browser's built-in voices).
-window.speakItalian = (text) => {
+// Italian text-to-speech: server-side Piper audio (cached), with the browser voice as a fallback.
+let currentAudio = null;
+
+const browserSpeak = (text) => {
     if (!('speechSynthesis' in window) || !text) return;
 
     const synth = window.speechSynthesis;
@@ -13,6 +15,25 @@ window.speakItalian = (text) => {
     if (voice) utterance.voice = voice;
 
     synth.speak(utterance);
+};
+
+window.speakItalian = (text) => {
+    if (!text) return;
+
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+    }
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+    const audio = new Audio('/tts?text=' + encodeURIComponent(text));
+    currentAudio = audio;
+
+    audio.addEventListener('error', () => browserSpeak(text), { once: true });
+    audio.play().catch((err) => {
+        // Autoplay restrictions are expected before the first interaction; anything else falls back.
+        if (err && err.name !== 'NotAllowedError' && err.name !== 'AbortError') browserSpeak(text);
+    });
 };
 
 window.autoSpeak = (text) => {
