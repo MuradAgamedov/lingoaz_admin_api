@@ -3,11 +3,11 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Lüğət') }}</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6 sm:py-12">
+        <div class="max-w-5xl mx-auto px-0 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
             @if ($showForm)
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <div class="bg-white p-4 sm:p-6 shadow-sm sm:rounded-lg">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">
                         {{ $editingId ? __('Sözü redaktə et') : __('Yeni söz əlavə et') }}
                     </h3>
@@ -36,8 +36,8 @@
                         <div>
                             <x-input-label for="groupId" :value="__('Qrup')" />
 
-                            <div class="flex items-center gap-3 mt-1">
-                                <select wire:model="groupId" id="groupId" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full">
+                            <div class="flex flex-wrap items-center gap-3 mt-1">
+                                <select wire:model="groupId" id="groupId" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full sm:flex-1 sm:w-auto">
                                     <option value="">{{ __('Qrupsuz') }}</option>
                                     @foreach ($groups as $group)
                                         <option value="{{ $group->id }}">{{ $group->name }}</option>
@@ -65,14 +65,14 @@
                     </form>
                 </div>
             @else
-                <div>
+                <div class="px-4 sm:px-0">
                     <x-primary-button type="button" wire:click="startCreate">{{ __('+ Yeni söz əlavə et') }}</x-primary-button>
                 </div>
             @endif
 
-            <div class="flex items-center gap-3">
+            <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3 px-4 sm:px-0">
                 <x-input-label for="filterGroupId" :value="__('Qrupa görə filtrlə:')" />
-                <select wire:model.live="filterGroupId" id="filterGroupId" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                <select wire:model.live="filterGroupId" id="filterGroupId" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full sm:w-auto">
                     <option value="">{{ __('Bütün sözlər') }}</option>
                     <option value="none">{{ __('Qrupsuz') }}</option>
                     @foreach ($groups as $group)
@@ -86,42 +86,66 @@
                 </label>
             </div>
 
-            <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
-                <table class="w-full text-sm text-left">
+            <div class="hidden sm:block bg-white shadow-sm sm:rounded-lg overflow-x-auto">
+                <table class="w-full min-w-[40rem] text-sm text-left">
                     <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
                         <tr>
-                            <th class="px-6 py-3"></th>
-                            <th class="px-6 py-3">{{ __('Orijinal söz') }}</th>
-                            <th class="px-6 py-3">{{ __('Oxunuşu') }}</th>
-                            <th class="px-6 py-3">{{ __('Tərcümə') }}</th>
-                            <th class="px-6 py-3">{{ __('Qrup') }}</th>
-                            <th class="px-6 py-3"></th>
+                            <th class="px-3 lg:px-6 py-3"></th>
+                            <th class="px-3 lg:px-6 py-3">{{ __('Orijinal söz') }}</th>
+                            <th class="px-3 lg:px-6 py-3">{{ __('Oxunuşu') }}</th>
+                            <th class="px-3 lg:px-6 py-3">{{ __('Tərcümə') }}</th>
+                            <th class="px-3 lg:px-6 py-3">{{ __('Qrup') }}</th>
+                            <th class="px-3 lg:px-6 py-3"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse ($words as $word)
                             <tr wire:key="word-{{ $word->id }}">
-                                <td class="px-6 py-4">
+                                <td class="px-3 lg:px-6 py-4">
                                     <button wire:click="toggleStar({{ $word->id }})" class="text-lg {{ $word->is_starred ? 'text-yellow-400' : 'text-gray-300 hover:text-gray-400' }}" title="{{ __('Ulduzla') }}">
                                         {{ $word->is_starred ? '★' : '☆' }}
                                     </button>
                                 </td>
-                                <td class="px-6 py-4 text-gray-900">{{ $word->original }}</td>
-                                <td class="px-6 py-4 text-gray-600">{{ $word->pronunciation }}</td>
-                                <td class="px-6 py-4 text-gray-900">{{ $word->translation }}</td>
-                                <td class="px-6 py-4 text-gray-600">{{ $word->group?->name ?? __('—') }}</td>
-                                <td class="px-6 py-4 text-right space-x-2">
+                                <td class="px-3 lg:px-6 py-4 text-gray-900">{{ $word->original }}</td>
+                                <td class="px-3 lg:px-6 py-4 text-gray-600">{{ $word->pronunciation }}</td>
+                                <td class="px-3 lg:px-6 py-4 text-gray-900">{{ $word->translation }}</td>
+                                <td class="px-3 lg:px-6 py-4 text-gray-600">{{ $word->group?->name ?? __('—') }}</td>
+                                <td class="px-3 lg:px-6 py-4 text-right space-x-2 whitespace-nowrap">
                                     <button wire:click="startEdit({{ $word->id }})" class="text-indigo-600 hover:text-indigo-900">{{ __('Redaktə et') }}</button>
                                     <button wire:click="delete({{ $word->id }})" wire:confirm="{{ __('Bu sözü silmək istədiyinizə əminsiniz?') }}" class="text-red-600 hover:text-red-900">{{ __('Sil') }}</button>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-6 text-center text-gray-400">{{ __('Hələ söz yoxdur.') }}</td>
+                                <td colspan="6" class="px-3 lg:px-6 py-6 text-center text-gray-400">{{ __('Hələ söz yoxdur.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            <div class="sm:hidden bg-white shadow-sm divide-y divide-gray-100">
+                @forelse ($words as $word)
+                    <div wire:key="word-card-{{ $word->id }}" class="p-4 flex gap-3">
+                        <button wire:click="toggleStar({{ $word->id }})" class="text-xl leading-none self-start {{ $word->is_starred ? 'text-yellow-400' : 'text-gray-300 hover:text-gray-400' }}" title="{{ __('Ulduzla') }}">
+                            {{ $word->is_starred ? '★' : '☆' }}
+                        </button>
+                        <div class="min-w-0 flex-1">
+                            <div class="font-medium text-gray-900 break-words">{{ $word->original }}</div>
+                            @if ($word->pronunciation)
+                                <div class="text-sm text-gray-500 break-words">[{{ $word->pronunciation }}]</div>
+                            @endif
+                            <div class="text-gray-900 break-words">{{ $word->translation }}</div>
+                            <div class="text-xs text-gray-400 mt-1">{{ $word->group?->name ?? __('—') }}</div>
+                            <div class="flex gap-4 mt-2 text-sm">
+                                <button wire:click="startEdit({{ $word->id }})" class="text-indigo-600 hover:text-indigo-900">{{ __('Redaktə et') }}</button>
+                                <button wire:click="delete({{ $word->id }})" wire:confirm="{{ __('Bu sözü silmək istədiyinizə əminsiniz?') }}" class="text-red-600 hover:text-red-900">{{ __('Sil') }}</button>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="p-6 text-center text-gray-400 text-sm">{{ __('Hələ söz yoxdur.') }}</p>
+                @endforelse
             </div>
         </div>
     </div>

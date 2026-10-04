@@ -3,10 +3,10 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Oyun') }}</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6 sm:py-12">
+        <div class="max-w-3xl mx-auto px-0 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
-            <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+            <div class="bg-white p-4 sm:p-6 shadow-sm sm:rounded-lg">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('Söz dəstəsini seçin') }}</h3>
 
                 <div class="space-y-2">
@@ -62,12 +62,12 @@
 
                         <div class="max-h-80 overflow-y-auto border rounded-md divide-y divide-gray-100">
                             @forelse ($allWords as $w)
-                                <label class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50">
+                                <label class="flex flex-wrap items-center gap-x-2 gap-y-0 px-3 py-2 hover:bg-gray-50">
                                     <input type="checkbox" wire:model.live="selectedWordIds" value="{{ $w->id }}">
                                     <span class="text-gray-900">{{ $w->original }}</span>
                                     <span class="text-gray-400 text-sm">— {{ $w->translation }}</span>
                                     @if ($w->group)
-                                        <span class="text-gray-400 text-xs ml-auto">{{ $w->group->name }}</span>
+                                        <span class="text-gray-400 text-xs sm:ml-auto">{{ $w->group->name }}</span>
                                     @endif
                                 </label>
                             @empty
@@ -80,10 +80,10 @@
                 @endif
             </div>
 
-            <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+            <div class="bg-white p-4 sm:p-6 shadow-sm sm:rounded-lg">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('Oyun rejimini seçin') }}</h3>
 
-                <div class="grid sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     <label class="border rounded-lg p-4 cursor-pointer {{ $mode === 'original_to_translation' ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200' }}">
                         <input type="radio" name="mode_choice" wire:model.live="mode" value="original_to_translation" class="sr-only">
                         <div class="font-medium text-gray-900">{{ __('Orijinaldan tərcüməyə') }}</div>
@@ -116,8 +116,8 @@
                 </div>
             </div>
 
-            <div>
-                <x-primary-button type="button" wire:click="start">{{ __('Başla') }}</x-primary-button>
+            <div class="px-4 sm:px-0">
+                <x-primary-button type="button" wire:click="start" class="w-full sm:w-auto justify-center">{{ __('Başla') }}</x-primary-button>
             </div>
         </div>
     </div>

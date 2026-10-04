@@ -3,8 +3,8 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Oyun') }}</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6 sm:py-12">
+        <div class="max-w-2xl mx-auto px-0 sm:px-6 lg:px-8">
 
             @if ($total === 0)
                 <div class="bg-white p-6 shadow-sm sm:rounded-lg text-center space-y-4">
@@ -21,7 +21,7 @@
                         <p class="text-3xl font-bold text-indigo-600">{{ $score }} / {{ $total }}</p>
                     @endif
 
-                    <div class="flex items-center justify-center gap-3">
+                    <div class="flex flex-wrap items-center justify-center gap-3">
                         <x-primary-button type="button" wire:click="restart(false)">
                             {{ __('Yenidən bütün sözlərlə') }}
                         </x-primary-button>
@@ -44,7 +44,7 @@
                     $showsOriginalFirst = in_array($mode, ['original_to_translation', 'flash_original'], true);
                 @endphp
 
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg space-y-6">
+                <div class="bg-white p-4 sm:p-6 shadow-sm sm:rounded-lg space-y-5 sm:space-y-6">
                     <div class="flex items-center justify-between text-sm text-gray-500">
                         <span>{{ __('Sual :current / :total', ['current' => $currentIndex + 1, 'total' => $total]) }}</span>
 
@@ -61,12 +61,12 @@
 
                     <div class="text-center space-y-1">
                         @if ($showsOriginalFirst)
-                            <p class="text-2xl font-semibold text-gray-900">{{ $currentWord->original }}</p>
+                            <p class="text-2xl font-semibold text-gray-900 break-words">{{ $currentWord->original }}</p>
                             @if ($currentWord->pronunciation)
                                 <p class="text-gray-500">[{{ $currentWord->pronunciation }}]</p>
                             @endif
                         @else
-                            <p class="text-2xl font-semibold text-gray-900">{{ $currentWord->translation }}</p>
+                            <p class="text-2xl font-semibold text-gray-900 break-words">{{ $currentWord->translation }}</p>
                         @endif
                     </div>
 
