@@ -45,6 +45,16 @@ new class extends Component
                 </div>
             </div>
 
+            <!-- Voice selector -->
+            <div class="hidden sm:flex sm:items-center sm:ms-auto sm:me-2">
+                <select data-tts-voice aria-label="{{ __('Səs seçimi') }}" title="{{ __('Səs seçimi') }}"
+                        class="rounded-lg border-gray-200 bg-white text-xs py-1 ps-2 pe-7 text-gray-600 focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="sara">🔊 {{ __('Qadın 2') }}</option>
+                    <option value="nicola">🔊 {{ __('Kişi') }}</option>
+                    <option value="piper">🔊 {{ __('Qadın 1') }}</option>
+                </select>
+            </div>
+
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
@@ -102,6 +112,17 @@ new class extends Component
             <x-responsive-nav-link :href="route('game.setup')" :active="request()->routeIs('game.setup') || request()->routeIs('game.play')" wire:navigate>
                 {{ __('Oyun') }}
             </x-responsive-nav-link>
+        </div>
+
+        <!-- Voice selector (mobile) -->
+        <div class="px-4 pb-3 flex items-center gap-3">
+            <span class="text-sm text-gray-600">{{ __('Səs') }}</span>
+            <select data-tts-voice aria-label="{{ __('Səs seçimi') }}"
+                    class="flex-1 rounded-lg border-gray-200 bg-white text-sm py-1.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500">
+                <option value="sara">🔊 {{ __('Qadın 2') }}</option>
+                <option value="nicola">🔊 {{ __('Kişi') }}</option>
+                <option value="piper">🔊 {{ __('Qadın 1') }}</option>
+            </select>
         </div>
 
         <!-- Responsive Settings Options -->

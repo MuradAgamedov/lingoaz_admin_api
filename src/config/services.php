@@ -37,7 +37,8 @@ return [
 
 
     'tts' => [
-        'url' => env('TTS_URL', 'http://lingoaz_tts:8000'),
+        'piper_url' => env('TTS_PIPER_URL', 'http://lingoaz_tts:8000'),
+        'kokoro_url' => env('TTS_KOKORO_URL', 'http://lingoaz_tts2:8000'),
     ],
 
 ];

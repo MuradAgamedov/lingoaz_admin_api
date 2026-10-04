@@ -9,9 +9,7 @@ class TtsController extends Controller
 {
     public function __invoke(Request $request, TtsService $tts)
     {
-        $text = (string) $request->query('text', '');
-
-        $file = $tts->ensure($text);
+        $file = $tts->ensure((string) $request->query('text', ''), $request->query('voice'));
 
         abort_if($file === null, 503);
 

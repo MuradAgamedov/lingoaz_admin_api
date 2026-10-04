@@ -17,6 +17,26 @@ const browserSpeak = (text) => {
     synth.speak(utterance);
 };
 
+const VOICES = ['sara', 'nicola', 'piper'];
+
+const getVoice = () => {
+    try {
+        const stored = localStorage.getItem('ttsVoice');
+        return VOICES.includes(stored) ? stored : 'sara';
+    } catch (e) {
+        return 'sara';
+    }
+};
+
+const syncVoiceSelects = () => {
+    document.querySelectorAll('[data-tts-voice]').forEach((select) => {
+        select.value = getVoice();
+    });
+};
+
+document.addEventListener('DOMContentLoaded', syncVoiceSelects);
+document.addEventListener('livewire:navigated', syncVoiceSelects);
+
 window.speakItalian = (text) => {
     if (!text) return;
 
@@ -26,7 +46,7 @@ window.speakItalian = (text) => {
     }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
-    const audio = new Audio('/tts?text=' + encodeURIComponent(text));
+    const audio = new Audio('/tts?voice=' + getVoice() + '&text=' + encodeURIComponent(text));
     currentAudio = audio;
 
     audio.addEventListener('error', () => browserSpeak(text), { once: true });
@@ -35,6 +55,18 @@ window.speakItalian = (text) => {
         if (err && err.name !== 'NotAllowedError' && err.name !== 'AbortError') browserSpeak(text);
     });
 };
+
+document.addEventListener('change', (e) => {
+    if (e.target && e.target.matches && e.target.matches('[data-tts-voice]')) {
+        try {
+            localStorage.setItem('ttsVoice', e.target.value);
+        } catch (err) {
+            // localStorage may be unavailable
+        }
+        syncVoiceSelects();
+        window.speakItalian('Ciao! Come stai?');
+    }
+});
 
 window.autoSpeak = (text) => {
     try {
