@@ -71,10 +71,7 @@ class Play extends Component
 
         $word = Word::find($this->currentWordId);
 
-        $normalize = fn (string $value): string => strtr(trim(mb_strtolower($value)), [
-            'à' => 'a', 'á' => 'a', 'è' => 'e', 'é' => 'e', 'ì' => 'i', 'í' => 'i',
-            'ò' => 'o', 'ó' => 'o', 'ù' => 'u', 'ú' => 'u', 'ü' => 'u',
-        ]);
+        $normalize = fn (string $value): string => trim(mb_strtolower($value));
 
         $this->registerAnswer($normalize($this->typedAnswer) === $normalize($word->original));
     }
