@@ -67,8 +67,12 @@
 
                                 <button type="button"
                                         x-on:click="auto = !auto; try { localStorage.setItem('autoSpeak', auto ? '1' : '0') } catch (e) {}"
-                                        :class="auto ? 'text-indigo-600' : 'text-gray-300'"
-                                        class="text-lg leading-none" title="{{ __('Avtomatik səsləndir') }}">🔊</button>
+                                        :class="auto ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-white text-gray-400 border-gray-200'"
+                                        class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs leading-5"
+                                        title="{{ __('Avtomatik səsləndirmə') }}">
+                                    <span>🔊</span>
+                                    <span x-text="auto ? '{{ __('Avto: açıq') }}' : '{{ __('Avto: bağlı') }}'"></span>
+                                </button>
 
                                 <button type="button" wire:click="toggleStar" class="text-xl leading-none {{ $currentStarred ? 'text-yellow-400' : 'text-gray-300 hover:text-gray-400' }}" title="{{ __('Ulduzla') }}">
                                     {{ $currentStarred ? '★' : '☆' }}
@@ -94,15 +98,21 @@
                         </div>
 
                         @if ($feedback)
-                            <div class="text-center rounded-lg p-3 {{ $feedback === 'correct' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
+                            <div class="text-center rounded-lg p-3 {{ $feedback === 'correct' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}"
+                                 wire:key="fb-{{ $currentIndex }}-{{ $feedback }}"
+                                 @if (! $showsOriginalFirst) x-init="window.autoSpeak && window.autoSpeak(@js($currentWord->original))" @endif>
                                 @if ($feedback === 'correct')
                                     {{ __('Düzgündür!') }}
                                 @else
                                     {{ __('Səhvdir. Düzgün cavab: :answer', ['answer' => $feedbackCorrectLabel]) }}
                                 @endif
-                                @if ($answered && ! $showsOriginalFirst)
-                                    <button type="button" class="ml-1 align-middle" title="{{ __('Səsləndir') }}"
-                                            x-on:click="window.speakItalian(@js($currentWord->original))">🔊</button>
+
+                                @if (! $showsOriginalFirst)
+                                    <div class="mt-2 flex items-center justify-center gap-2 text-gray-900">
+                                        <span class="text-lg font-semibold">{{ $currentWord->original }}</span>
+                                        <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg shadow-sm hover:bg-indigo-50" title="{{ __('Səsləndir') }}"
+                                                x-on:click="window.speakItalian(@js($currentWord->original))">🔊</button>
+                                    </div>
                                 @endif
                             </div>
                         @endif
@@ -120,7 +130,8 @@
                         @elseif ($isCardMode)
                             <div class="text-center space-y-4">
                                 @if ($revealed)
-                                    <div class="rounded-lg bg-gray-50 p-4">
+                                    <div class="rounded-lg bg-gray-50 p-4"
+                                         @if ($mode === 'flash_translation') x-init="window.autoSpeak && window.autoSpeak(@js($currentWord->original))" @endif>
                                         @if ($mode === 'flash_original')
                                             <p class="text-xl font-semibold text-gray-900">{{ $currentWord->translation }}</p>
                                         @else

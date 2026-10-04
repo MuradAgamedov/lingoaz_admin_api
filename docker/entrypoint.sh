@@ -1,27 +1,21 @@
 #!/bin/sh
 set -e
 
-mkdir -p storage/framework/cache \
-    storage/framework/views \
-    storage/framework/sessions \
-    storage/logs \
-    bootstrap/cache
+cd /var/www
 
+composer install --no-interaction --prefer-dist --optimize-autoloader
+
+mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/app/public storage/logs bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
-# .env yoxdursa .env.example-dən kopyala
-if [ ! -f .env ]; then
-    cp .env.example .env
-fi
-
-# APP_KEY boşdursa yarat
-if grep -q "^APP_KEY=$" .env; then
+if grep -q "^APP_KEY=$" .env 2>/dev/null; then
     php artisan key:generate --force
 fi
 
-php artisan optimize:clear || true
-php artisan horizon:publish || true
-# Supervisor işlət (queue worker üçün)
-supervisord -c /etc/supervisor/supervisord.conf &
+php artisan config:clear
+php artisan migrate --force
+php artisan optimize:clear
+php artisan storage:link || true
 
 exec php-fpm
