@@ -1,13 +1,13 @@
 <div>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Qruplar') }}</h2>
+        <h2 class="font-bold text-xl text-gray-800 leading-tight">{{ __('Qruplar') }}</h2>
     </x-slot>
 
     <div class="py-6 sm:py-12">
         <div class="max-w-5xl mx-auto px-0 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
             @if ($showForm)
-                <div class="bg-white p-4 sm:p-6 shadow-sm sm:rounded-lg">
+                <div class="bg-white p-4 sm:p-6 shadow-sm sm:rounded-xl">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">
                         {{ $editingId ? __('Qrupu redaktə et') : __('Yeni qrup') }}
                     </h3>
@@ -31,7 +31,7 @@
                 </div>
             @endif
 
-            <div class="bg-white shadow-sm sm:rounded-lg overflow-x-auto">
+            <div class="bg-white shadow-sm sm:rounded-xl overflow-x-auto">
                 <table class="w-full text-sm text-left">
                     <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
                         <tr>

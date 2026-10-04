@@ -1,13 +1,13 @@
 <div>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Lüğət') }}</h2>
+        <h2 class="font-bold text-xl text-gray-800 leading-tight">{{ __('Lüğət') }}</h2>
     </x-slot>
 
     <div class="py-6 sm:py-12">
         <div class="max-w-5xl mx-auto px-0 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
             @if ($showForm)
-                <div class="bg-white p-4 sm:p-6 shadow-sm sm:rounded-lg">
+                <div class="bg-white p-4 sm:p-6 shadow-sm sm:rounded-xl">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">
                         {{ $editingId ? __('Sözü redaktə et') : __('Yeni söz əlavə et') }}
                     </h3>
@@ -64,9 +64,46 @@
                         </div>
                     </form>
                 </div>
+            @elseif ($showBulk)
+                <div class="bg-white p-4 sm:p-6 shadow-sm sm:rounded-xl">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ __('Çoxlu söz əlavə et') }}</h3>
+                    <p class="text-sm text-gray-500 mb-4">
+                        {{ __('Hər sətirdə bir söz. Format:') }}
+                        <code class="bg-gray-100 rounded px-1">söz | oxunuş | tərcümə</code>
+                        {{ __('və ya') }}
+                        <code class="bg-gray-100 rounded px-1">söz - tərcümə</code>
+                    </p>
+
+                    <form wire:submit="saveBulk" class="space-y-4">
+                        <div>
+                            <textarea wire:model="bulkText" rows="8" class="block w-full border-gray-300 rounded-lg shadow-sm text-sm font-mono focus:border-indigo-500 focus:ring-indigo-500" placeholder="ponte | ponte | körpü&#10;rete - şəbəkə"></textarea>
+                            <x-input-error :messages="$errors->get('bulkText')" class="mt-2" />
+                        </div>
+
+                        <div>
+                            <x-input-label for="bulkGroupId" :value="__('Qrup')" />
+                            <select wire:model="bulkGroupId" id="bulkGroupId" class="mt-1 block w-full sm:w-64 border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">{{ __('Qrupsuz') }}</option>
+                                @foreach ($groups as $group)
+                                    <option value="{{ $group->id }}">{{ $group->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        @if ($bulkResult)
+                            <p class="text-sm rounded-lg bg-green-50 text-green-700 px-3 py-2">{{ $bulkResult }}</p>
+                        @endif
+
+                        <div class="flex items-center gap-3">
+                            <x-primary-button type="submit">{{ __('Əlavə et') }}</x-primary-button>
+                            <x-secondary-button type="button" wire:click="closeBulk">{{ __('Bağla') }}</x-secondary-button>
+                        </div>
+                    </form>
+                </div>
             @else
-                <div class="px-4 sm:px-0">
+                <div class="px-4 sm:px-0 flex flex-wrap gap-3">
                     <x-primary-button type="button" wire:click="startCreate">{{ __('+ Yeni söz əlavə et') }}</x-primary-button>
+                    <x-secondary-button type="button" wire:click="openBulk">{{ __('Çoxlu əlavə et') }}</x-secondary-button>
                 </div>
             @endif
 
@@ -86,7 +123,7 @@
                 </label>
             </div>
 
-            <div class="hidden sm:block bg-white shadow-sm sm:rounded-lg overflow-x-auto">
+            <div class="hidden sm:block bg-white shadow-sm sm:rounded-xl overflow-x-auto">
                 <table class="w-full min-w-[40rem] text-sm text-left">
                     <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
                         <tr>
@@ -106,7 +143,7 @@
                                         {{ $word->is_starred ? '★' : '☆' }}
                                     </button>
                                 </td>
-                                <td class="px-3 lg:px-6 py-4 text-gray-900">{{ $word->original }}</td>
+                                <td class="px-3 lg:px-6 py-4 text-gray-900">{{ $word->original }} <button type="button" class="ml-1 text-gray-300 hover:text-indigo-600" title="{{ __('Səsləndir') }}" data-text="{{ $word->original }}" onclick="window.speakItalian(this.dataset.text)">🔊</button></td>
                                 <td class="px-3 lg:px-6 py-4 text-gray-600">{{ $word->pronunciation }}</td>
                                 <td class="px-3 lg:px-6 py-4 text-gray-900">{{ $word->translation }}</td>
                                 <td class="px-3 lg:px-6 py-4 text-gray-600">{{ $word->group?->name ?? __('—') }}</td>
@@ -131,7 +168,7 @@
                             {{ $word->is_starred ? '★' : '☆' }}
                         </button>
                         <div class="min-w-0 flex-1">
-                            <div class="font-medium text-gray-900 break-words">{{ $word->original }}</div>
+                            <div class="font-medium text-gray-900 break-words">{{ $word->original }} <button type="button" class="ml-1 text-gray-300 hover:text-indigo-600" data-text="{{ $word->original }}" onclick="window.speakItalian(this.dataset.text)">🔊</button></div>
                             @if ($word->pronunciation)
                                 <div class="text-sm text-gray-500 break-words">[{{ $word->pronunciation }}]</div>
                             @endif

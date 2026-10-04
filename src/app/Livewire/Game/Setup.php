@@ -4,6 +4,7 @@ namespace App\Livewire\Game;
 
 use App\Models\Group;
 use App\Models\Word;
+use App\Services\QuestionPool;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -48,6 +49,15 @@ class Setup extends Component
         return $query;
     }
 
+    public function mount(): void
+    {
+        $requested = request()->query('group');
+
+        if (in_array($requested, ['due', 'hard', 'starred', 'all'], true)) {
+            $this->group = $requested;
+        }
+    }
+
     public function updatedSelectAll(bool $value): void
     {
         $visibleIds = $this->filteredWordsQuery()->pluck('id')->map(fn ($id) => (string) $id)->all();
@@ -84,6 +94,8 @@ class Setup extends Component
     {
         return view('livewire.game.setup', [
             'groups' => Group::where('user_id', Auth::id())->orderBy('name')->get(),
+            'dueCount' => (new QuestionPool)->dueWords(Auth::id())->count(),
+            'hardCount' => Word::where('user_id', Auth::id())->hard()->count(),
             'allWords' => $this->filteredWordsQuery()->with('group')->orderByDesc('id')->get(),
         ]);
     }

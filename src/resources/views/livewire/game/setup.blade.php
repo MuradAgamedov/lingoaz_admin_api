@@ -1,33 +1,45 @@
 <div>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Oyun') }}</h2>
+        <h2 class="font-bold text-xl text-gray-800 leading-tight">{{ __('Oyun') }}</h2>
     </x-slot>
 
     <div class="py-6 sm:py-12">
         <div class="max-w-3xl mx-auto px-0 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
-            <div class="bg-white p-4 sm:p-6 shadow-sm sm:rounded-lg">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('Söz dəstəsini seçin') }}</h3>
+            <div class="bg-white p-4 sm:p-6 shadow-sm sm:rounded-xl">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ __('Söz dəstəsini seçin') }}</h3>
 
                 <div class="space-y-2">
-                    <label class="flex items-center gap-2">
+                    <label class="flex items-center gap-2 rounded-lg bg-indigo-50 px-3 py-2">
+                        <input type="radio" name="group_choice" wire:model.live="group" value="due">
+                        <span class="font-medium text-indigo-900">📅 {{ __('Günün təkrarı') }}</span>
+                        <span class="text-xs text-indigo-600 ml-auto">{{ __(':count söz', ['count' => $dueCount]) }}</span>
+                    </label>
+
+                    <label class="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2">
+                        <input type="radio" name="group_choice" wire:model.live="group" value="hard">
+                        <span class="font-medium text-red-900">🔥 {{ __('Çətin sözlər') }}</span>
+                        <span class="text-xs text-red-600 ml-auto">{{ __(':count söz', ['count' => $hardCount]) }}</span>
+                    </label>
+
+                    <label class="flex items-center gap-2 px-3 py-1">
                         <input type="radio" name="group_choice" wire:model.live="group" value="all">
                         <span>{{ __('Bütün sözlər') }}</span>
                     </label>
 
-                    <label class="flex items-center gap-2">
+                    <label class="flex items-center gap-2 px-3 py-1">
                         <input type="radio" name="group_choice" wire:model.live="group" value="starred">
                         <span>⭐ {{ __('Ulduzlu sözlər') }}</span>
                     </label>
 
                     @foreach ($groups as $g)
-                        <label class="flex items-center gap-2">
+                        <label class="flex items-center gap-2 px-3 py-1">
                             <input type="radio" name="group_choice" wire:model.live="group" value="{{ $g->id }}">
                             <span>{{ $g->name }}</span>
                         </label>
                     @endforeach
 
-                    <label class="flex items-center gap-2">
+                    <label class="flex items-center gap-2 px-3 py-1">
                         <input type="radio" name="group_choice" wire:model.live="group" value="custom">
                         <span>{{ __('Konkret sözlər') }}</span>
                     </label>
@@ -80,8 +92,8 @@
                 @endif
             </div>
 
-            <div class="bg-white p-4 sm:p-6 shadow-sm sm:rounded-lg">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('Oyun rejimini seçin') }}</h3>
+            <div class="bg-white p-4 sm:p-6 shadow-sm sm:rounded-xl">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ __('Oyun rejimini seçin') }}</h3>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     <label class="border rounded-lg p-4 cursor-pointer {{ $mode === 'original_to_translation' ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200' }}">

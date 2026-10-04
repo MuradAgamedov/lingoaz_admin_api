@@ -71,7 +71,10 @@ class Play extends Component
 
         $word = Word::find($this->currentWordId);
 
-        $normalize = fn (string $value): string => trim(mb_strtolower($value));
+        $normalize = fn (string $value): string => strtr(trim(mb_strtolower($value)), [
+            'à' => 'a', 'á' => 'a', 'è' => 'e', 'é' => 'e', 'ì' => 'i', 'í' => 'i',
+            'ò' => 'o', 'ó' => 'o', 'ù' => 'u', 'ú' => 'u', 'ü' => 'u',
+        ]);
 
         $this->registerAnswer($normalize($this->typedAnswer) === $normalize($word->original));
     }
@@ -79,6 +82,31 @@ class Play extends Component
     public function reveal(): void
     {
         $this->revealed = true;
+    }
+
+    public function markKnown(bool $knew): void
+    {
+        if (! $this->revealed || $this->currentWordId === null) {
+            return;
+        }
+
+        if (! array_key_exists($this->currentIndex, $this->results)) {
+            $this->track($knew);
+            $this->results[$this->currentIndex] = $knew;
+
+            if ($knew) {
+                $this->score++;
+            } else {
+                $this->wrongWordIds[] = $this->currentWordId;
+            }
+        }
+
+        $this->next();
+    }
+
+    private function track(bool $correct): void
+    {
+        Word::where('user_id', Auth::id())->find($this->currentWordId)?->recordAnswer($correct);
     }
 
     public function toggleStar(): void
@@ -186,6 +214,7 @@ class Play extends Component
         $this->answered = true;
         $this->feedback = $correct ? 'correct' : 'incorrect';
         $this->results[$this->currentIndex] = $correct;
+        $this->track($correct);
 
         if ($correct) {
             $this->score++;

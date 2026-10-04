@@ -35,10 +35,109 @@ class Index extends Component
 
     public bool $onlyStarred = false;
 
+    public bool $showBulk = false;
+
+    public string $bulkText = '';
+
+    public string $bulkGroupId = '';
+
+    public ?string $bulkResult = null;
+
     public function startCreate(): void
     {
-        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showNewGroupInput', 'newGroupName');
+        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showNewGroupInput', 'newGroupName', 'showBulk');
         $this->showForm = true;
+    }
+
+    public function openBulk(): void
+    {
+        $this->reset('bulkText', 'bulkGroupId', 'bulkResult');
+        $this->showForm = false;
+        $this->showBulk = true;
+    }
+
+    public function closeBulk(): void
+    {
+        $this->reset('showBulk', 'bulkText', 'bulkGroupId', 'bulkResult');
+    }
+
+    /**
+     * Each line: "original | pronunciation | translation" or "original - translation".
+     */
+    public function saveBulk(): void
+    {
+        $this->validate(['bulkText' => 'required|string|max:50000'], [], ['bulkText' => __('Siyahı')]);
+
+        $groupId = $this->bulkGroupId !== '' ? (int) $this->bulkGroupId : null;
+
+        if ($groupId !== null) {
+            Group::where('user_id', Auth::id())->findOrFail($groupId);
+        }
+
+        $added = 0;
+        $skipped = 0;
+        $invalid = 0;
+
+        foreach (preg_split('/\R/u', $this->bulkText) as $line) {
+            $line = trim($line);
+
+            if ($line === '') {
+                continue;
+            }
+
+            if (preg_match('/[|\t]/u', $line)) {
+                $parts = array_map('trim', preg_split('/\s*[|\t]\s*/u', $line));
+            } else {
+                $parts = array_map('trim', preg_split('/\s+[—–-]\s+/u', $line, 2));
+            }
+
+            $parts = array_values(array_filter($parts, fn ($p) => $p !== ''));
+
+            if (count($parts) === 2) {
+                [$original, $translation] = $parts;
+                $pronunciation = null;
+            } elseif (count($parts) >= 3) {
+                [$original, $pronunciation, $translation] = $parts;
+            } else {
+                $invalid++;
+
+                continue;
+            }
+
+            if (mb_strlen($original) > 255 || mb_strlen($translation) > 255 || mb_strlen((string) $pronunciation) > 255) {
+                $invalid++;
+
+                continue;
+            }
+
+            $exists = Word::where('user_id', Auth::id())
+                ->where('group_id', $groupId)
+                ->whereRaw('BINARY original = ?', [$original])
+                ->exists();
+
+            if ($exists) {
+                $skipped++;
+
+                continue;
+            }
+
+            Word::create([
+                'user_id' => Auth::id(),
+                'group_id' => $groupId,
+                'original' => $original,
+                'pronunciation' => $pronunciation,
+                'translation' => $translation,
+            ]);
+            $added++;
+        }
+
+        $this->bulkResult = __(':added söz əlavə olundu', ['added' => $added])
+            .($skipped ? __(', :n təkrar atlandı', ['n' => $skipped]) : '')
+            .($invalid ? __(', :n sətir oxunmadı', ['n' => $invalid]) : '');
+
+        if ($added > 0) {
+            $this->bulkText = '';
+        }
     }
 
     public function startEdit(int $wordId): void
