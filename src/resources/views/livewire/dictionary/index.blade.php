@@ -127,6 +127,26 @@
                 </div>
             @endif
 
+            <div class="px-4 sm:px-0">
+                <div class="relative w-full sm:max-w-md">
+                    <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">🔍</span>
+                    <input
+                        type="search"
+                        wire:model.live.debounce.300ms="search"
+                        id="search"
+                        autocomplete="off"
+                        placeholder="{{ __('Söz, oxunuş və ya tərcümə axtar...') }}"
+                        aria-label="{{ __('Axtarış') }}"
+                        class="block w-full rounded-lg border-gray-300 pl-10 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                </div>
+                @if (trim($search) !== '')
+                    <p class="mt-2 text-xs text-gray-500">
+                        {{ __(':count nəticə tapıldı', ['count' => $words->count()]) }}
+                    </p>
+                @endif
+            </div>
+
             <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3 px-4 sm:px-0">
                 <x-input-label for="filterGroupId" :value="__('Qrupa görə filtrlə:')" />
                 <select wire:model.live="filterGroupId" id="filterGroupId" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full sm:w-auto">
@@ -174,7 +194,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-3 lg:px-6 py-6 text-center text-gray-400">{{ __('Hələ söz yoxdur.') }}</td>
+                                <td colspan="6" class="px-3 lg:px-6 py-6 text-center text-gray-400">{{ trim($search) !== '' ? __('Heç nə tapılmadı.') : __('Hələ söz yoxdur.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -201,7 +221,7 @@
                         </div>
                     </div>
                 @empty
-                    <p class="p-6 text-center text-gray-400 text-sm">{{ __('Hələ söz yoxdur.') }}</p>
+                    <p class="p-6 text-center text-gray-400 text-sm">{{ trim($search) !== '' ? __('Heç nə tapılmadı.') : __('Hələ söz yoxdur.') }}</p>
                 @endforelse
             </div>
         </div>

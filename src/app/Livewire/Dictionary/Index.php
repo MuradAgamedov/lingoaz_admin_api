@@ -37,6 +37,8 @@ class Index extends Component
 
     public bool $onlyStarred = false;
 
+    public string $search = '';
+
     public bool $showBulk = false;
 
     public string $bulkText = '';
@@ -289,6 +291,20 @@ class Index extends Component
 
         if ($this->onlyStarred) {
             $query->where('is_starred', true);
+        }
+
+        $term = trim($this->search);
+
+        if ($term !== '') {
+            // Matches the original word, the pronunciation or the translation.
+            // The utf8mb4_unicode_ci collation is accent- and case-insensitive ("citta" finds "città").
+            $like = '%'.addcslashes($term, '%_\\').'%';
+
+            $query->where(function ($q) use ($like) {
+                $q->where('original', 'like', $like)
+                    ->orWhere('pronunciation', 'like', $like)
+                    ->orWhere('translation', 'like', $like);
+            });
         }
 
         $audioMissing = count(app(TtsService::class)->wordsMissingAudio(Auth::id()));
