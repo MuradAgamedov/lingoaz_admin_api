@@ -27,6 +27,31 @@
                             </div>
                         </div>
 
+                        <div class="space-y-2">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <x-secondary-button type="button" wire:click="suggest" wire:loading.attr="disabled" wire:target="suggest">
+                                    <span wire:loading.remove wire:target="suggest">✨ {{ __('Tərcümə və oxunuş təklif et') }}</span>
+                                    <span wire:loading wire:target="suggest">⏳ {{ __('Düşünür...') }}</span>
+                                </x-secondary-button>
+                                @if ($suggestionNote)
+                                    <span class="text-xs text-red-600">{{ $suggestionNote }}</span>
+                                @endif
+                            </div>
+
+                            @if (count($suggestions) > 0)
+                                <div class="flex flex-wrap items-center gap-2 text-sm">
+                                    <span class="text-gray-500">{{ __('Variantlar:') }}</span>
+                                    @foreach ($suggestions as $i => $option)
+                                        <button type="button" wire:click="useSuggestion({{ $i }})"
+                                                class="rounded-full border px-3 py-1 {{ $translation === $option ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 bg-white text-gray-700 hover:border-indigo-400' }}">
+                                            {{ $option }}
+                                        </button>
+                                    @endforeach
+                                    <span class="text-xs text-gray-400">{{ __('AI təklifidir, yoxlayın') }}</span>
+                                </div>
+                            @endif
+                        </div>
+
                         <div>
                             <x-input-label for="translation" :value="__('Tərcümə')" />
                             <x-text-input wire:model="translation" id="translation" type="text" class="mt-1 block w-full" />
@@ -72,6 +97,7 @@
                         <code class="bg-gray-100 rounded px-1">söz | oxunuş | tərcümə</code>
                         {{ __('və ya') }}
                         <code class="bg-gray-100 rounded px-1">söz - tərcümə</code>
+                        {{ __('və ya yalnız italyanca söz: tərcümə və oxunuş AI ilə doldurulur (sonra yoxlayın).') }}
                     </p>
 
                     <form wire:submit="saveBulk" class="space-y-4">

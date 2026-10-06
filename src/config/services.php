@@ -41,4 +41,8 @@ return [
         'kokoro_url' => env('TTS_KOKORO_URL', 'http://lingoaz_tts2:8000'),
     ],
 
+    'nllb' => [
+        'url' => env('NLLB_URL', 'http://lingoaz_nllb:8000'),
+    ],
+
 ];

@@ -5,6 +5,7 @@ namespace App\Livewire\Dictionary;
 use App\Models\Group;
 use App\Models\Word;
 use App\Services\TtsService;
+use App\Services\WordAssistant;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -38,6 +39,11 @@ class Index extends Component
     public bool $onlyStarred = false;
 
     public string $search = '';
+
+    /** @var array<int, string> */
+    public array $suggestions = [];
+
+    public ?string $suggestionNote = null;
 
     public bool $showBulk = false;
 
@@ -113,8 +119,42 @@ class Index extends Component
 
     public function startCreate(): void
     {
-        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showNewGroupInput', 'newGroupName', 'showBulk');
+        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showNewGroupInput', 'newGroupName', 'suggestions', 'suggestionNote', 'showBulk');
         $this->showForm = true;
+    }
+
+    /**
+     * Draft a translation (AI model) and pronunciation (rules) for the Italian word in the form.
+     */
+    public function suggest(): void
+    {
+        $this->resetErrorBag('original');
+
+        if (trim($this->original) === '') {
+            $this->addError('original', __('Əvvəlcə italyanca sözü yazın.'));
+
+            return;
+        }
+
+        $result = app(WordAssistant::class)->suggest($this->original);
+
+        $this->suggestions = $result['translations'];
+        $this->suggestionNote = $result['error'];
+
+        if (trim($this->pronunciation) === '' && $result['pronunciation']) {
+            $this->pronunciation = $result['pronunciation'];
+        }
+
+        if (trim($this->translation) === '' && $result['translations'] !== []) {
+            $this->translation = $result['translations'][0];
+        }
+    }
+
+    public function useSuggestion(int $index): void
+    {
+        if (isset($this->suggestions[$index])) {
+            $this->translation = $this->suggestions[$index];
+        }
     }
 
     public function openBulk(): void
@@ -145,6 +185,9 @@ class Index extends Component
         $added = 0;
         $skipped = 0;
         $invalid = 0;
+        $drafted = 0;
+        $draftBudget = 80;
+        $assistant = app(WordAssistant::class);
 
         foreach (preg_split('/\R/u', $this->bulkText) as $line) {
             $line = trim($line);
@@ -166,6 +209,21 @@ class Index extends Component
                 $pronunciation = null;
             } elseif (count($parts) >= 3) {
                 [$original, $pronunciation, $translation] = $parts;
+            } elseif (count($parts) === 1 && $draftBudget > 0) {
+                // Only the Italian word: draft translation and pronunciation.
+                $original = $parts[0];
+                $draft = $assistant->suggest($original);
+                $draftBudget--;
+
+                if ($draft['translations'] === []) {
+                    $invalid++;
+
+                    continue;
+                }
+
+                $translation = $draft['translations'][0];
+                $pronunciation = $draft['pronunciation'];
+                $drafted++;
             } else {
                 $invalid++;
 
@@ -201,6 +259,7 @@ class Index extends Component
 
         $this->bulkResult = __(':added söz əlavə olundu', ['added' => $added])
             .($skipped ? __(', :n təkrar atlandı', ['n' => $skipped]) : '')
+            .($drafted ? __(', :n sözün tərcüməsi AI ilə dolduruldu (yoxlayın)', ['n' => $drafted]) : '')
             .($invalid ? __(', :n sətir oxunmadı', ['n' => $invalid]) : '');
 
         if ($added > 0) {
@@ -213,6 +272,8 @@ class Index extends Component
         $word = Word::where('user_id', Auth::id())->findOrFail($wordId);
 
         $this->editingId = $word->id;
+        $this->suggestions = [];
+        $this->suggestionNote = null;
         $this->original = $word->original;
         $this->pronunciation = $word->pronunciation ?? '';
         $this->translation = $word->translation;
@@ -224,7 +285,7 @@ class Index extends Component
 
     public function cancel(): void
     {
-        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showForm', 'showNewGroupInput', 'newGroupName');
+        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showForm', 'showNewGroupInput', 'newGroupName', 'suggestions', 'suggestionNote');
     }
 
     public function createGroupInline(): void
@@ -262,7 +323,7 @@ class Index extends Component
             Word::create([...$data, 'user_id' => Auth::id()]);
         }
 
-        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showForm', 'showNewGroupInput', 'newGroupName');
+        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showForm', 'showNewGroupInput', 'newGroupName', 'suggestions', 'suggestionNote');
     }
 
     public function delete(int $wordId): void
