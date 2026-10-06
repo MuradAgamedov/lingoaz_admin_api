@@ -45,6 +45,11 @@ class Index extends Component
 
     public ?string $suggestionNote = null;
 
+    /** Values placed in the form by the assistant; only these may be replaced or cleared automatically. */
+    public string $autoTranslation = '';
+
+    public string $autoPronunciation = '';
+
     public bool $showBulk = false;
 
     public string $bulkText = '';
@@ -119,13 +124,33 @@ class Index extends Component
 
     public function startCreate(): void
     {
-        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showNewGroupInput', 'newGroupName', 'suggestions', 'suggestionNote', 'showBulk');
+        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showNewGroupInput', 'newGroupName', 'suggestions', 'suggestionNote', 'autoTranslation', 'autoPronunciation', 'showBulk');
         $this->showForm = true;
     }
 
     /**
      * Draft a translation (AI model) and pronunciation (rules) for the Italian word in the form.
      */
+    /**
+     * The Italian word changed: drop what the assistant filled in for the previous word.
+     * Text typed by the user is never touched.
+     */
+    public function updatedOriginal(): void
+    {
+        if ($this->autoTranslation !== '' && $this->translation === $this->autoTranslation) {
+            $this->translation = '';
+        }
+
+        if ($this->autoPronunciation !== '' && $this->pronunciation === $this->autoPronunciation) {
+            $this->pronunciation = '';
+        }
+
+        $this->autoTranslation = '';
+        $this->autoPronunciation = '';
+        $this->suggestions = [];
+        $this->suggestionNote = null;
+    }
+
     public function suggest(): void
     {
         $this->resetErrorBag('original');
@@ -141,12 +166,15 @@ class Index extends Component
         $this->suggestions = $result['translations'];
         $this->suggestionNote = $result['error'];
 
-        if (trim($this->pronunciation) === '' && $result['pronunciation']) {
+        // Fill empty fields, and refresh fields that still hold an earlier suggestion.
+        if ($result['pronunciation'] && (trim($this->pronunciation) === '' || $this->pronunciation === $this->autoPronunciation)) {
             $this->pronunciation = $result['pronunciation'];
+            $this->autoPronunciation = $result['pronunciation'];
         }
 
-        if (trim($this->translation) === '' && $result['translations'] !== []) {
+        if ($result['translations'] !== [] && (trim($this->translation) === '' || $this->translation === $this->autoTranslation)) {
             $this->translation = $result['translations'][0];
+            $this->autoTranslation = $result['translations'][0];
         }
     }
 
@@ -154,6 +182,7 @@ class Index extends Component
     {
         if (isset($this->suggestions[$index])) {
             $this->translation = $this->suggestions[$index];
+            $this->autoTranslation = $this->suggestions[$index];
         }
     }
 
@@ -274,6 +303,8 @@ class Index extends Component
         $this->editingId = $word->id;
         $this->suggestions = [];
         $this->suggestionNote = null;
+        $this->autoTranslation = '';
+        $this->autoPronunciation = '';
         $this->original = $word->original;
         $this->pronunciation = $word->pronunciation ?? '';
         $this->translation = $word->translation;
@@ -285,7 +316,7 @@ class Index extends Component
 
     public function cancel(): void
     {
-        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showForm', 'showNewGroupInput', 'newGroupName', 'suggestions', 'suggestionNote');
+        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showForm', 'showNewGroupInput', 'newGroupName', 'suggestions', 'suggestionNote', 'autoTranslation', 'autoPronunciation');
     }
 
     public function createGroupInline(): void
@@ -323,7 +354,7 @@ class Index extends Component
             Word::create([...$data, 'user_id' => Auth::id()]);
         }
 
-        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showForm', 'showNewGroupInput', 'newGroupName', 'suggestions', 'suggestionNote');
+        $this->reset('original', 'pronunciation', 'translation', 'groupId', 'editingId', 'showForm', 'showNewGroupInput', 'newGroupName', 'suggestions', 'suggestionNote', 'autoTranslation', 'autoPronunciation');
     }
 
     public function delete(int $wordId): void

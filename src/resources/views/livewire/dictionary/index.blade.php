@@ -16,7 +16,7 @@
                         <div class="grid sm:grid-cols-2 gap-4">
                             <div>
                                 <x-input-label for="original" :value="__('Orijinal söz')" />
-                                <x-text-input wire:model="original" id="original" type="text" class="mt-1 block w-full" autofocus />
+                                <x-text-input wire:model.blur="original" id="original" type="text" class="mt-1 block w-full" autofocus />
                                 <x-input-error :messages="$errors->get('original')" class="mt-2" />
                             </div>
 

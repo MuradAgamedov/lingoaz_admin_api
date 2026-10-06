@@ -52,6 +52,18 @@ def translate(text: str, n: int = 3):
 ARTICLE_PREFIX = re.compile(r"^(bir|bu|o)\s+", re.IGNORECASE)
 
 
+def raw_lists(text: str):
+    text = text.strip()
+    article = ("una " if text.endswith("a") else "un ") + text
+    with_article = []
+    for candidate in translate(article):
+        candidate = ARTICLE_PREFIX.sub("", candidate.strip())
+        if text[:1].islower():
+            candidate = candidate[:1].lower() + candidate[1:]
+        with_article.append(candidate)
+    return {"bare": translate(text), "article": with_article}
+
+
 def suggestions(text: str):
     """Single words are translated twice (bare and with an Italian article, which gives the model
     context) and the lists are merged; phrases are translated as they are."""
@@ -72,7 +84,16 @@ def suggestions(text: str):
     for candidate in with_article[:2] + bare + with_article[2:]:
         if candidate and candidate.lower() not in [m.lower() for m in merged]:
             merged.append(candidate)
-    return merged[:5]
+    return base_forms_first(merged)[:5]
+
+
+def base_forms_first(candidates):
+    """A candidate that only extends another candidate (case or possessive suffix, e.g. "xəstəxanada"
+    after "xəstəxana") is moved behind it, because the base form is what a dictionary entry needs."""
+    def extends(c):
+        return any(o != c and len(o) >= 3 and c.lower().startswith(o.lower()) for o in candidates)
+
+    return [c for c in candidates if not extends(c)] + [c for c in candidates if extends(c)]
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -91,7 +112,10 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         try:
-            body = json.dumps({"translations": suggestions(text)}, ensure_ascii=False).encode()
+            if (parse_qs(url.query).get("raw") or [""])[0] == "1":
+                body = json.dumps(raw_lists(text), ensure_ascii=False).encode()
+            else:
+                body = json.dumps({"translations": suggestions(text)}, ensure_ascii=False).encode()
         except Exception as exc:  # noqa: BLE001
             self.send_response(500)
             self.end_headers()
