@@ -16,7 +16,17 @@
                         <div class="grid sm:grid-cols-2 gap-4">
                             <div>
                                 <x-input-label for="original" :value="__('Orijinal söz')" />
-                                <x-text-input wire:model.blur="original" id="original" type="text" class="mt-1 block w-full" autofocus />
+                                <x-text-input wire:model.blur="original" id="original" type="text" class="mt-1 block w-full" autofocus autocomplete="off" />
+                                <div class="mt-1.5 flex flex-wrap items-center gap-2 text-sm">
+                                    <button type="button"
+                                            onclick="window.speakItalian(document.getElementById('original').value.trim())"
+                                            class="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-white px-3 py-1 text-gray-700 hover:border-indigo-400 hover:text-indigo-700">
+                                        🔊 {{ __('Dinlə') }}
+                                    </button>
+                                    @if (trim($pronunciation) !== '')
+                                        <span class="text-gray-500">[{{ $pronunciation }}]</span>
+                                    @endif
+                                </div>
                                 <x-input-error :messages="$errors->get('original')" class="mt-2" />
                             </div>
 

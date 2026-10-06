@@ -4,6 +4,7 @@ namespace App\Livewire\Dictionary;
 
 use App\Models\Group;
 use App\Models\Word;
+use App\Services\ItalianRespeller;
 use App\Services\TtsService;
 use App\Services\WordAssistant;
 use Illuminate\Support\Facades\Cache;
@@ -149,6 +150,24 @@ class Index extends Component
         $this->autoPronunciation = '';
         $this->suggestions = [];
         $this->suggestionNote = null;
+
+        $word = trim($this->original);
+
+        if ($word === '') {
+            return;
+        }
+
+        // Pronunciation is rule based, so it can be shown at once; the audio is prepared in the background.
+        if (trim($this->pronunciation) === '') {
+            $draft = ItalianRespeller::respell($word);
+
+            if ($draft !== '') {
+                $this->pronunciation = $draft;
+                $this->autoPronunciation = $draft;
+            }
+        }
+
+        $this->dispatch('prefetch-audio', text: $word);
     }
 
     public function suggest(): void
@@ -176,6 +195,8 @@ class Index extends Component
             $this->translation = $result['translations'][0];
             $this->autoTranslation = $result['translations'][0];
         }
+
+        $this->dispatch('speak-word', text: trim($this->original));
     }
 
     public function useSuggestion(int $index): void

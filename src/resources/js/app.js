@@ -75,6 +75,24 @@ window.autoSpeak = (text) => {
     if (window.__autoSpeak) window.speakItalian(text);
 };
 
+// Audio for the dictionary form: warm the cache when the word is entered, play it after a suggestion.
+window.prefetchItalian = (text) => {
+    if (!text) return;
+    fetch('/tts?voice=' + getVoice() + '&text=' + encodeURIComponent(text), { credentials: 'same-origin' }).catch(() => {});
+};
+
+const eventText = (e) => (Array.isArray(e) ? (e[0] && e[0].text) || e[0] : e && e.text) || '';
+
+const registerLivewireAudioEvents = () => {
+    if (window.__lingoAudioEvents || !window.Livewire) return;
+    window.__lingoAudioEvents = true;
+    window.Livewire.on('prefetch-audio', (e) => window.prefetchItalian(eventText(e)));
+    window.Livewire.on('speak-word', (e) => window.speakItalian(eventText(e)));
+};
+
+registerLivewireAudioEvents();
+document.addEventListener('livewire:init', registerLivewireAudioEvents);
+
 // Keyboard shortcuts for the game screen.
 if (!window.__lingoKeys) {
     window.__lingoKeys = true;
