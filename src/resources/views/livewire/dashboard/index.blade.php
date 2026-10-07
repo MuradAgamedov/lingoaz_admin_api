@@ -96,11 +96,17 @@
                     <h4 class="font-semibold text-gray-900 mb-4">{{ __('Qruplar üzrə') }}</h4>
                     <div class="grid sm:grid-cols-2 gap-x-8 gap-y-4">
                         @foreach ($groups as $group)
-                            @php $pct = round($group->mastered_count / $group->words_count * 100); @endphp
+                            @php $pct = $group->words_count > 0 ? round($group->mastered_count / $group->words_count * 100) : 0; @endphp
                             <div>
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-800 truncate">{{ $group->name }}</span>
-                                    <span class="text-gray-500 shrink-0 ml-2">{{ $group->mastered_count }}/{{ $group->words_count }}</span>
+                                    <span class="text-gray-500 shrink-0 ml-2">
+                                        @if ($group->words_count === 0)
+                                            {{ __('boşdur') }}
+                                        @else
+                                            {{ $group->mastered_count }}/{{ $group->words_count }}
+                                        @endif
+                                    </span>
                                 </div>
                                 <div class="h-2 mt-1 rounded-full bg-gray-100 overflow-hidden">
                                     <div class="h-full bg-green-500" style="width: {{ $pct }}%"></div>

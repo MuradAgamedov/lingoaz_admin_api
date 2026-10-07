@@ -57,7 +57,6 @@ class Index extends Component
 
         $groups = Group::where('user_id', $userId)
             ->withCount(['words', 'words as mastered_count' => fn ($q) => $q->where('box', '>=', Word::MASTERED_BOX)])
-            ->having('words_count', '>', 0)
             ->orderBy('id')
             ->get();
 
