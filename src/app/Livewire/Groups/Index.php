@@ -20,12 +20,14 @@ class Index extends Component
 
     public function startCreate(): void
     {
+        $this->savedMessage = null;
         $this->reset('name', 'editingId');
         $this->showForm = true;
     }
 
     public function startEdit(int $groupId): void
     {
+        $this->savedMessage = null;
         $group = Group::where('user_id', Auth::id())->findOrFail($groupId);
 
         $this->editingId = $group->id;
@@ -38,19 +40,24 @@ class Index extends Component
         $this->reset('name', 'editingId', 'showForm');
     }
 
+    public ?string $savedMessage = null;
+
     public function save(): void
     {
         $this->validate();
+        $this->savedMessage = null;
 
         if ($this->editingId) {
             $group = Group::where('user_id', Auth::id())->findOrFail($this->editingId);
             $this->authorize('update', $group);
             $group->update(['name' => $this->name]);
+            $this->savedMessage = __('«:name» qrupu yeniləndi', ['name' => $this->name]);
         } else {
             Group::create([
                 'user_id' => Auth::id(),
                 'name' => $this->name,
             ]);
+            $this->savedMessage = __('«:name» qrupu yaradıldı', ['name' => $this->name]);
         }
 
         $this->reset('name', 'editingId', 'showForm');
@@ -68,8 +75,9 @@ class Index extends Component
         return view('livewire.groups.index', [
             'groups' => Group::where('user_id', Auth::id())
                 ->withCount('words')
-                ->orderBy('name')
-                ->get(),
+                ->get()
+                ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+                ->values(),   // natural order: Lezione 2 comes before Lezione 10
         ]);
     }
 }

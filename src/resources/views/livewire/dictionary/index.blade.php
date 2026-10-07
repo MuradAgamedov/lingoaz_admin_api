@@ -225,7 +225,7 @@
                                 <td class="px-3 lg:px-6 py-4 text-gray-600">{{ $word->group?->name ?? __('—') }}</td>
                                 <td class="px-3 lg:px-6 py-4 text-right space-x-2 whitespace-nowrap">
                                     <button wire:click="startEdit({{ $word->id }})" class="text-indigo-600 hover:text-indigo-900">{{ __('Redaktə et') }}</button>
-                                    <button wire:click="delete({{ $word->id }})" wire:confirm="{{ __('Bu sözü silmək istədiyinizə əminsiniz?') }}" class="text-red-600 hover:text-red-900">{{ __('Sil') }}</button>
+                                    <span x-data="{ ask: false }" class="inline-flex items-center gap-2"><button type="button" x-show="!ask" x-on:click="ask = true" class="text-red-600 hover:text-red-900">{{ __('Sil') }}</button><span x-show="ask" x-cloak class="inline-flex items-center gap-2 rounded-lg bg-red-50 px-2 py-1"><span class="text-xs text-red-700">{{ __('Silinsin?') }}</span><button type="button" wire:click="delete({{ $word->id }})" class="text-xs font-bold text-red-700 hover:text-red-900">{{ __('Bəli, sil') }}</button><button type="button" x-on:click="ask = false" class="text-xs text-gray-500 hover:text-gray-700">{{ __('Ləğv et') }}</button></span></span>
                                 </td>
                             </tr>
                         @empty
@@ -252,7 +252,7 @@
                             <div class="text-xs text-gray-400 mt-1">{{ $word->group?->name ?? __('—') }}</div>
                             <div class="flex gap-4 mt-2 text-sm">
                                 <button wire:click="startEdit({{ $word->id }})" class="text-indigo-600 hover:text-indigo-900">{{ __('Redaktə et') }}</button>
-                                <button wire:click="delete({{ $word->id }})" wire:confirm="{{ __('Bu sözü silmək istədiyinizə əminsiniz?') }}" class="text-red-600 hover:text-red-900">{{ __('Sil') }}</button>
+                                <span x-data="{ ask: false }" class="inline-flex items-center gap-2"><button type="button" x-show="!ask" x-on:click="ask = true" class="text-red-600 hover:text-red-900">{{ __('Sil') }}</button><span x-show="ask" x-cloak class="inline-flex items-center gap-2 rounded-lg bg-red-50 px-2 py-1"><span class="text-xs text-red-700">{{ __('Silinsin?') }}</span><button type="button" wire:click="delete({{ $word->id }})" class="text-xs font-bold text-red-700 hover:text-red-900">{{ __('Bəli, sil') }}</button><button type="button" x-on:click="ask = false" class="text-xs text-gray-500 hover:text-gray-700">{{ __('Ləğv et') }}</button></span></span>
                             </div>
                         </div>
                     </div>

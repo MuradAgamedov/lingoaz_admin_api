@@ -426,8 +426,9 @@ class Index extends Component
             'audioMissing' => $audioMissing,
             'words' => $query->orderByDesc('id')->get(),
             'groups' => Group::where('user_id', Auth::id())
-                ->orderBy('name')
-                ->get(),
+                ->get()
+                ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+                ->values(),
         ]);
     }
 }

@@ -93,7 +93,7 @@ class Setup extends Component
     public function render()
     {
         return view('livewire.game.setup', [
-            'groups' => Group::where('user_id', Auth::id())->orderBy('name')->get(),
+            'groups' => Group::where('user_id', Auth::id())->get()->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->values(),
             'dueCount' => (new QuestionPool)->dueWords(Auth::id())->count(),
             'hardCount' => Word::where('user_id', Auth::id())->hard()->count(),
             'allWords' => $this->filteredWordsQuery()->with('group')->orderByDesc('id')->get(),

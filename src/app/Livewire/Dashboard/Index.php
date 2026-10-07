@@ -57,8 +57,9 @@ class Index extends Component
 
         $groups = Group::where('user_id', $userId)
             ->withCount(['words', 'words as mastered_count' => fn ($q) => $q->where('box', '>=', Word::MASTERED_BOX)])
-            ->orderBy('id')
-            ->get();
+            ->get()
+            ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
 
         return view('livewire.dashboard.index', [
             'total' => $total,
